@@ -1,4 +1,3 @@
-import Algorithms
 import Foundation
 
 let graph1: Graph = {
@@ -36,84 +35,37 @@ let graph2: Graph = {
     return graph
 }()
 
-let mapping = [("a", "1"), ("b", "2"), ("c", "3"), ("d", "4"), ("e", "5"), ("f", "5")]
-
-func similarity(between graph1: Graph, and graph2: Graph, using mapping: [(String, String)]) -> Double {
-    return Double(
-        matchedLabeledVertices(of: graph1, in: graph2, using: mapping).count
-        + matchedLabeledVertices(of: graph2, in: graph1, using: mapping).count
-        + matchedLabeledEdges(of: graph1, in: graph2, using: mapping).count
-        + matchedLabeledEdges(of: graph2, in: graph1, using: mapping).count
-        - splitCount(of: mapping)
-    )
-    /
-    Double(
-        graph1.labeledVertices.count
-        + graph1.labeledEdges.count
-        + graph2.labeledVertices.count
-        + graph2.labeledEdges.count
-    )
-}
-
-func applyMapping(_ mapping: [(String, String)], to vertex: String) -> [String] {
-    return mapping
-        .filter { $0 == vertex || $1 == vertex }
-        .map { $0 == vertex ? $1 : $0 }
-}
-
-func matchedLabeledVertices(of graph1: Graph, in graph2: Graph, using mapping: [(String, String)]) -> Set<LabeledVertex> {
-    graph1.labeledVertices
-        .filter { labeledVertex in
-            let mappedVertices = applyMapping(mapping, to: labeledVertex.vertex)
-            return graph2.labeledVertices
-                .filter { labeledVertex2 in
-                    mappedVertices.contains(labeledVertex2.vertex)
-                }
-                .contains { labeledVertex2 in
-                    labeledVertex2.label == labeledVertex.label
-                }
-        }
-}
-
-func matchedLabeledEdges(of graph1: Graph, in graph2: Graph, using mapping: [(String, String)]) -> Set<LabeledEdge> {
-    graph1.labeledEdges
-        .filter { labeledEdge in
-            let mappedOriginVertices = applyMapping(mapping, to: labeledEdge.origin)
-            let mappedDestinationVertices = applyMapping(mapping, to: labeledEdge.destination)
-            
-            return graph2.labeledEdges
-                .filter { labeledEdge2 in
-                    mappedOriginVertices.contains(labeledEdge2.origin)
-                    && mappedDestinationVertices.contains(labeledEdge2.destination)
-                }
-                .contains { labeledEdge2 in
-                    labeledEdge2.label == labeledEdge.label
-                }
-        }
-}
-
-func splitCount(of mapping: [(String, String)]) -> Int {
-    let verticesWithCount: [String: Int] = {
-        var verticesWithCount: [String: Int] = [:]
-        mapping
-            .flatMap { [$0, $1] }
-            .forEach { verticesWithCount[$0, default: 0] += 1 }
-        return verticesWithCount
-    }()
+func getBestMapping(between graph1: Graph, and graph2: Graph) -> Mapping {
+    var mapping = Mapping()
+    var bestMapping = mapping
     
-    return verticesWithCount
-        .filter {
-            $0.value >= 2
+    var potentialNewCouples = mapping.getPotentialNewCouples(graph1: graph1, graph2: graph2)
+    
+    while (
+        !potentialNewCouples.allSatisfy {
+            var newMapping = Mapping()
+            newMapping.couples.insert($0)
+            newMapping.couples.formUnion(mapping.couples)
+            
+            return newMapping.score(between: graph1, and: graph2) <= mapping.score(between: graph1, and: graph2) && mapping.potentialNewMatchingEdges(with: $0, between: graph1, and: graph2).isEmpty
         }
-        .count
+    ) {
+        mapping.couples.insert(potentialNewCouples.randomElement()!)
+        
+        if mapping.score(between: graph1, and: graph2) > bestMapping.score(between: graph1, and: graph2) {
+            bestMapping = mapping
+        }
+        
+        potentialNewCouples = mapping.getPotentialNewCouples(graph1: graph1, graph2: graph2)
+    }
+    return bestMapping
 }
 
+let mapping = getBestMapping(between: graph1, and: graph2)
 
-let allPossibleMappings = product(graph1.vertices, graph2.vertices)
-    .combinations(ofCount: 0...)
+let formatter = NumberFormatter()
+formatter.numberStyle = .percent
+formatter.minimumFractionDigits = 2
 
-let bestMapping = allPossibleMappings.max {
-    similarity(between: graph1, and: graph2, using: $0) < similarity(between: graph1, and: graph2, using: $1)
-}
-
-print(bestMapping!)
+print("Similarity: \(formatter.string(from: mapping.similarity(between: graph1, and: graph2) as NSNumber)!)")
+print(mapping)
