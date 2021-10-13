@@ -50,10 +50,10 @@ def __transfer_transitions(statechart: Statechart, origin, destination):
         statechart.transitions[destination].append(new_transition)
     statechart.transitions.pop(origin)
 
-    for node, transitions in copy.deepcopy(statechart.transitions).items():
+    for state, transitions in copy.deepcopy(statechart.transitions).items():
         for transition in transitions:
             if transition.target_id == origin:
                 new_transition = copy.deepcopy(transition)
                 new_transition.target_id = destination
-                statechart.transitions[node].append(new_transition)
-                statechart.transitions[node].remove(transition)
+                statechart.transitions[state].append(new_transition)
+                statechart.transitions[state].remove(transition)
