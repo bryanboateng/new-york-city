@@ -7,6 +7,17 @@ from yak_parser.Statechart import NodeType
 
 
 def process(statechart: Statechart):
+    remove_duplicate_transitions(statechart)
+    remove_unnecessary_nesting(statechart)
+
+
+def remove_duplicate_transitions(statechart: Statechart):
+    for state, transitions in copy.deepcopy(statechart.transitions).items():
+        transition_set = set(transitions)
+        statechart.transitions[state] = list(transition_set)
+
+
+def remove_unnecessary_nesting(statechart: Statechart):
     for node in dfs_preorder_nodes(copy.deepcopy(statechart.hierarchy)):
         if statechart.hierarchy.nodes[node]['ntype'] != NodeType.STATE:
             continue
