@@ -1,14 +1,57 @@
 import copy
+import itertools
 
-from networkx import dfs_preorder_nodes
+from networkx import dfs_preorder_nodes, DiGraph, bfs_tree
 
 from yak_parser import Statechart
 from yak_parser.Statechart import NodeType
 
 
 def process(statechart: Statechart):
+    __remove_unreachable_states(statechart)
     __remove_duplicate_transitions(statechart)
     __remove_unnecessary_nesting(statechart)
+
+
+def __remove_unreachable_states(statechart: Statechart):
+    graph = DiGraph()
+    for node in statechart.hierarchy:
+        if statechart.hierarchy.nodes[node]['ntype'] != NodeType.STATE:
+            continue
+        graph.add_node(node)
+        successors = statechart.hierarchy.successors(node)
+        grandchildren_nested = [statechart.hierarchy.successors(successor) for successor in successors]
+        grandchildren = itertools.chain(*grandchildren_nested)
+        for state in grandchildren:
+            if statechart.hierarchy.nodes[state]['obj'].initial:
+                graph.add_edge(node, state)
+
+    for transitions in statechart.transitions.values():
+        for transition in transitions:
+            graph.add_edge(transition.source_id, transition.target_id)
+
+    root_initial_states = __get_root_initial_states(statechart)
+    reachable_states_nested = []
+    for initial_state in root_initial_states:
+        reachable_states_nested.append(bfs_tree(graph, initial_state))
+
+    reachable_states = itertools.chain(*reachable_states_nested)
+    unreachable_states = [state for state in graph if state not in reachable_states]
+
+    for state in unreachable_states:
+        statechart.transitions.pop(state, None)
+    statechart.hierarchy.remove_nodes_from(unreachable_states)
+
+
+def __get_root_initial_states(statechart: Statechart):
+    root_successors = statechart.hierarchy.successors('root')
+    root_grandchildren_nested = [statechart.hierarchy.successors(state) for state in root_successors]
+    root_grandchildren = itertools.chain(*root_grandchildren_nested)
+    root_initial_states = []
+    for state in root_grandchildren:
+        if statechart.hierarchy.nodes[state]['obj'].initial:
+            root_initial_states.append(state)
+    return root_initial_states
 
 
 def __remove_duplicate_transitions(statechart: Statechart):
