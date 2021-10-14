@@ -39,6 +39,7 @@ def __remove_unnecessary_nesting(statechart: Statechart):
             raise ValueError('A very specific bad thing happened')
 
         __transfer_transitions(statechart, grandparent, node)
+        __transfer_initial_status(statechart, grandparent, node)
         statechart.hierarchy.add_edge(great_grandparent, node)
         statechart.hierarchy.remove_nodes_from([parent, grandparent])
 
@@ -52,6 +53,10 @@ def __get_parent(statechart: Statechart, node):
 
 def __state_is_orthogonal(statechart, state):
     return len(statechart.hierarchy.out_edges(state)) != 1
+
+
+def __transfer_initial_status(statechart: Statechart, origin, destination):
+    statechart.hierarchy.nodes[destination]['obj'].initial = statechart.hierarchy.nodes[origin]['obj'].initial
 
 
 def __transfer_transitions(statechart: Statechart, origin, destination):
