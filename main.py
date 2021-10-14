@@ -1,15 +1,19 @@
+import os
+
 import bryan
 from yak_parser.StatechartParser import StatechartParser
 
 
-statechart = StatechartParser().parse(path='02_light_switch2.ysc')
+path = '02_light_switch.ysc'
+name_without_extension = os.path.splitext(path)[0]
+statechart = StatechartParser().parse(path=path)
 
-statechart.save_hierarchy_image('02_light_switch2.svg')
+statechart.save_hierarchy_image(name_without_extension + '.svg')
 statechart.print_transitions()
 
 
 bryan.process(statechart)
 
 
-statechart.save_hierarchy_image('02_light_switch2_processed.svg')
+statechart.save_hierarchy_image(name_without_extension + '_processed.svg')
 statechart.print_transitions()
