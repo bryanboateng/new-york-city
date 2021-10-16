@@ -1,5 +1,4 @@
 import copy
-import itertools
 
 from networkx import dfs_preorder_nodes, DiGraph, bfs_tree
 
@@ -21,7 +20,7 @@ def __remove_unreachable_states(statechart: Statechart):
         graph.add_node(node)
         successors = statechart.hierarchy.successors(node)
         grandchildren_nested = [statechart.hierarchy.successors(successor) for successor in successors]
-        grandchildren = itertools.chain(*grandchildren_nested)
+        grandchildren = [grandchild for sublist in grandchildren_nested for grandchild in sublist]
         for state in grandchildren:
             if statechart.hierarchy.nodes[state]['obj'].initial:
                 graph.add_edge(node, state)
@@ -35,7 +34,7 @@ def __remove_unreachable_states(statechart: Statechart):
     for initial_state in root_initial_states:
         reachable_states_nested.append(bfs_tree(graph, initial_state))
 
-    reachable_states = itertools.chain(*reachable_states_nested)
+    reachable_states = [state for sublist in reachable_states_nested for state in sublist]
     unreachable_states = [state for state in graph if state not in reachable_states]
 
     for state in unreachable_states:
@@ -46,7 +45,7 @@ def __remove_unreachable_states(statechart: Statechart):
 def __get_root_initial_states(statechart: Statechart):
     root_successors = statechart.hierarchy.successors('root')
     root_grandchildren_nested = [statechart.hierarchy.successors(state) for state in root_successors]
-    root_grandchildren = itertools.chain(*root_grandchildren_nested)
+    root_grandchildren = [grandchild for sublist in root_grandchildren_nested for grandchild in sublist]
     root_initial_states = []
     for state in root_grandchildren:
         if statechart.hierarchy.nodes[state]['obj'].initial:
