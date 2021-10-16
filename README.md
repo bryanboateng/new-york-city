@@ -15,7 +15,7 @@ source venv/bin/activate
 
 ### Dependency Requirements
 
-Put the yakindu parser archive a folder named "packages" underneath the project folder. (new-york-city/packages/yakindu_parser-0.0.1.tar.gz).
+Put the yakindu parser archive inside a folder named "packages" underneath the project folder. (new-york-city/packages/yakindu_parser-0.0.1.tar.gz).
 
 Upgrade pip.
 ```bash
