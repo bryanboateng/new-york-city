@@ -67,8 +67,8 @@ def __remove_unnecessary_nesting(statechart: Statechart):
         parent = __get_parent(statechart, node)
         if statechart.hierarchy.nodes[parent]['ntype'] != NodeType.REGION:
             raise ValueError('A very specific bad thing happened')
-        # noinspection PyArgumentList
-        if len(statechart.hierarchy.out_edges(parent)) != 1:
+        # noinspection PyCallingNonCallable
+        if statechart.hierarchy.out_degree(parent) != 1:
             continue
         grandparent = __get_parent(statechart, parent)
         grandparent_type = statechart.hierarchy.nodes[grandparent]['ntype']
@@ -96,8 +96,8 @@ def __get_parent(statechart: Statechart, node):
 
 
 def __state_is_orthogonal(statechart: Statechart, state):
-    # noinspection PyArgumentList
-    return len(statechart.hierarchy.out_edges(state)) != 1
+    # noinspection PyCallingNonCallable
+    return statechart.hierarchy.out_degree(state) != 1
 
 
 def __transfer_initial_status(statechart: Statechart, origin, destination):
