@@ -2,8 +2,7 @@ import copy
 
 from networkx import dfs_preorder_nodes, DiGraph, bfs_tree
 
-from yak_parser import Statechart
-from yak_parser.Statechart import NodeType
+from yak_parser.Statechart import NodeType, Statechart
 
 
 def process(statechart: Statechart):
@@ -66,6 +65,7 @@ def __remove_unnecessary_nesting(statechart: Statechart):
         parent = __get_parent(statechart, node)
         if statechart.hierarchy.nodes[parent]['ntype'] != NodeType.REGION:
             raise ValueError('A very specific bad thing happened')
+        # noinspection PyArgumentList
         if len(statechart.hierarchy.out_edges(parent)) != 1:
             continue
         grandparent = __get_parent(statechart, parent)
@@ -93,7 +93,8 @@ def __get_parent(statechart: Statechart, node):
     return predecessors[0]
 
 
-def __state_is_orthogonal(statechart, state):
+def __state_is_orthogonal(statechart: Statechart, state):
+    # noinspection PyArgumentList
     return len(statechart.hierarchy.out_edges(state)) != 1
 
 
