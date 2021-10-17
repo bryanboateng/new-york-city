@@ -1,4 +1,5 @@
 import copy
+import re
 
 from networkx import dfs_preorder_nodes, DiGraph, bfs_tree
 
@@ -9,6 +10,7 @@ def process(statechart: Statechart):
     __remove_unreachable_states(statechart)
     __remove_duplicate_transitions(statechart)
     __remove_unnecessary_nesting(statechart)
+    __normalize_time_units(statechart)
 
 
 def __remove_unreachable_states(statechart: Statechart):
@@ -116,3 +118,25 @@ def __transfer_transitions(statechart: Statechart, origin, destination):
                 new_transition.target_id = destination
                 statechart.transitions[state].append(new_transition)
                 statechart.transitions[state].remove(transition)
+
+
+def __normalize_time_units(statechart: Statechart):
+    for transitions in statechart.transitions.values():
+        for transition in transitions:
+            for trigger in copy.deepcopy(transition.specification.triggers):
+                result = re.compile(r'after\s+(\d+)\s*([mn]?s)').search(trigger)
+                if result is not None:
+                    transition.specification.triggers.remove(trigger)
+                    nanoseconds = __convert_to_nanoseconds(int(result.group(1)), result.group(2))
+                    transition.specification.triggers.add("after " + str(nanoseconds) + "ns")
+
+
+def __convert_to_nanoseconds(amount: int, unit: str):
+    if unit == 'ns':
+        return amount
+    elif unit == 'ms':
+        return amount * 1000000
+    elif unit == 's':
+        return amount * 1000000000
+    else:
+        raise ValueError('A very specific bad thing happened')
