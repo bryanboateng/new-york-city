@@ -25,3 +25,11 @@ Install the packages.
 ```bash
 python -m pip install -r requirements.txt --no-index --find-links packages/yakindu_parser-0.0.1.tar.gz
 ```
+
+## Testing
+### Running unit-tests
+
+```bash
+python -m unittest discover -v
+```
+
