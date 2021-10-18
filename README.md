@@ -15,15 +15,13 @@ source venv/bin/activate
 
 ### Dependency Requirements
 
-Put the yakindu parser archive inside a folder named "packages" underneath the project folder. (new-york-city/packages/yakindu_parser-0.0.1.tar.gz).
-
-Upgrade pip.
+Install local packages.
 ```bash
-python -m pip install --upgrade pip
+python -m pip install packages/*
 ```
-Install the packages.
+Install remote packages.
 ```bash
-python -m pip install -r requirements.txt --no-index --find-links packages/yakindu_parser-0.0.1.tar.gz
+python -m pip install -r requirements.txt
 ```
 
 ## Testing
