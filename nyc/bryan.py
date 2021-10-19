@@ -7,9 +7,9 @@ from yak_parser.Statechart import NodeType, Statechart
 
 
 def process(statechart: Statechart):
+    __remove_unnecessary_nesting(statechart)
     __remove_unreachable_states(statechart)
     __remove_duplicate_transitions(statechart)
-    __remove_unnecessary_nesting(statechart)
     __normalize_time_units(statechart)
 
 
