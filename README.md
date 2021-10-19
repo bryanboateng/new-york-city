@@ -28,6 +28,7 @@ python -m pip install -r requirements.txt
 ### Running unit-tests
 
 ```bash
+cd tests
 python -m unittest discover -v
 ```
 

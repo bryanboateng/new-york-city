@@ -1,3 +1,8 @@
+# Allow direct execution
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: E402
+
 import unittest
 from collections import Counter
 
@@ -54,3 +59,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(statechart1.definition.events, statechart2.definition.events)
         self.assertTrue(networkx.is_isomorphic(statechart1.hierarchy, statechart2.hierarchy, node_match=node_match))
         self.assertEqual(get_named_transitions(statechart1), get_named_transitions(statechart2))
+
+
+if __name__ == '__main__':
+    unittest.main()
