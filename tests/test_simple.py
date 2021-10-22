@@ -58,7 +58,9 @@ class MyTestCase(unittest.TestCase):
     def test_remove_unnecessary_nesting_transfer_transitions(self):
         statechart = StatechartParser().parse(path='test_remove_unnecessary_nesting_transfer_transitions.ysc')
         bryan.process(statechart)
-        statechart_expected = StatechartParser().parse(path='test_remove_unnecessary_nesting_transfer_transitions_expected.ysc')
+        statechart_expected = StatechartParser().parse(
+            path='test_remove_unnecessary_nesting_transfer_transitions_expected.ysc'
+        )
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
