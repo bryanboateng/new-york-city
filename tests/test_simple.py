@@ -73,6 +73,15 @@ class MyTestCase(unittest.TestCase):
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
+    def test_remove_unnecessary_dont_remove_main_region(self):
+        statechart = StatechartParser().parse(path='test_remove_unnecessary_dont_remove_main_region.ysc')
+        bryan.process(statechart)
+        statechart_expected = StatechartParser().parse(
+            path='test_remove_unnecessary_dont_remove_main_region_expected.ysc'
+        )
+
+        self.assertStatechartEqual(statechart, statechart_expected)
+
     def test_normalize_time_units(self):
         statechart = StatechartParser().parse(path='test_normalize_time_units.sct')
         bryan.process(statechart)
