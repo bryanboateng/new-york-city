@@ -55,6 +55,13 @@ class MyTestCase(unittest.TestCase):
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
+    def test_remove_unnecessary_nesting_transfer_transitions(self):
+        statechart = StatechartParser().parse(path='test_remove_unnecessary_nesting_transfer_transitions.ysc')
+        bryan.process(statechart)
+        statechart_expected = StatechartParser().parse(path='test_remove_unnecessary_nesting_transfer_transitions_expected.ysc')
+
+        self.assertStatechartEqual(statechart, statechart_expected)
+
     def assertStatechartEqual(self, statechart1: Statechart, statechart2: Statechart):
         self.assertEqual(statechart1.definition.events, statechart2.definition.events)
         self.assertTrue(networkx.is_isomorphic(statechart1.hierarchy, statechart2.hierarchy, node_match=node_match))
