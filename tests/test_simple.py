@@ -64,6 +64,15 @@ class MyTestCase(unittest.TestCase):
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
+    def test_remove_unnecessary_nesting_orthogonal_state(self):
+        statechart = StatechartParser().parse(path='test_remove_unnecessary_nesting_orthogonal_state.ysc')
+        bryan.process(statechart)
+        statechart_expected = StatechartParser().parse(
+            path='test_remove_unnecessary_nesting_orthogonal_state_expected.ysc'
+        )
+
+        self.assertStatechartEqual(statechart, statechart_expected)
+
     def test_normalize_time_units(self):
         statechart = StatechartParser().parse(path='test_normalize_time_units.sct')
         bryan.process(statechart)
