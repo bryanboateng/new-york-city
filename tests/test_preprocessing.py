@@ -47,45 +47,55 @@ def transition_convert_ids_to_names(transition: ScTransition, statechart: Statec
     return ScTransition(source_name, target_name, transition.specification)
 
 
-class MyTestCase(unittest.TestCase):
+class TestPreprocessing(unittest.TestCase):
     def test_remove_unreachable_states(self):
-        statechart = StatechartParser().parse(path='test_remove_unreachable_states.ysc')
+        statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_remove_unreachable_states.ysc')
         bryan.process(statechart)
-        statechart_expected = StatechartParser().parse(path='test_remove_unreachable_states_expected.ysc')
+        statechart_expected = StatechartParser().parse(
+            path='testdata/test_preprocessing/test_remove_unreachable_states_expected.ysc'
+        )
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
     def test_remove_unnecessary_nesting_transfer_transitions(self):
-        statechart = StatechartParser().parse(path='test_remove_unnecessary_nesting_transfer_transitions.ysc')
+        statechart = StatechartParser().parse(
+            path='testdata/test_preprocessing/test_remove_unnecessary_nesting_transfer_transitions.ysc'
+        )
         bryan.process(statechart)
         statechart_expected = StatechartParser().parse(
-            path='test_remove_unnecessary_nesting_transfer_transitions_expected.ysc'
+            path='testdata/test_preprocessing/test_remove_unnecessary_nesting_transfer_transitions_expected.ysc'
         )
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
     def test_remove_unnecessary_nesting_orthogonal_state(self):
-        statechart = StatechartParser().parse(path='test_remove_unnecessary_nesting_orthogonal_state.ysc')
+        statechart = StatechartParser().parse(
+            path='testdata/test_preprocessing/test_remove_unnecessary_nesting_orthogonal_state.ysc'
+        )
         bryan.process(statechart)
         statechart_expected = StatechartParser().parse(
-            path='test_remove_unnecessary_nesting_orthogonal_state_expected.ysc'
+            path='testdata/test_preprocessing/test_remove_unnecessary_nesting_orthogonal_state_expected.ysc'
         )
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
     def test_remove_unnecessary_dont_remove_main_region(self):
-        statechart = StatechartParser().parse(path='test_remove_unnecessary_dont_remove_main_region.ysc')
+        statechart = StatechartParser().parse(
+            path='testdata/test_preprocessing/test_remove_unnecessary_dont_remove_main_region.ysc'
+        )
         bryan.process(statechart)
         statechart_expected = StatechartParser().parse(
-            path='test_remove_unnecessary_dont_remove_main_region_expected.ysc'
+            path='testdata/test_preprocessing/test_remove_unnecessary_dont_remove_main_region_expected.ysc'
         )
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
     def test_normalize_time_units(self):
-        statechart = StatechartParser().parse(path='test_normalize_time_units.sct')
+        statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_normalize_time_units.sct')
         bryan.process(statechart)
-        statechart_expected = StatechartParser().parse(path='test_normalize_time_units_expected.sct')
+        statechart_expected = StatechartParser().parse(
+            path='testdata/test_preprocessing/test_normalize_time_units_expected.sct'
+        )
 
         self.assertStatechartEqual(statechart, statechart_expected)
 
