@@ -55,7 +55,7 @@ class TestPreprocessing(unittest.TestCase):
             path='testdata/test_preprocessing/test_remove_unreachable_states_expected.ysc'
         )
 
-        self.assertStatechartEqual(statechart, statechart_expected)
+        self.assertStatechartEqual(statechart_expected, statechart)
 
     def test_remove_unnecessary_nesting_transfer_transitions(self):
         statechart = StatechartParser().parse(
@@ -66,7 +66,7 @@ class TestPreprocessing(unittest.TestCase):
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_transfer_transitions_expected.ysc'
         )
 
-        self.assertStatechartEqual(statechart, statechart_expected)
+        self.assertStatechartEqual(statechart_expected, statechart)
 
     def test_remove_unnecessary_nesting_orthogonal_state(self):
         statechart = StatechartParser().parse(
@@ -77,7 +77,7 @@ class TestPreprocessing(unittest.TestCase):
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_orthogonal_state_expected.ysc'
         )
 
-        self.assertStatechartEqual(statechart, statechart_expected)
+        self.assertStatechartEqual(statechart_expected, statechart)
 
     def test_remove_unnecessary_dont_remove_main_region(self):
         statechart = StatechartParser().parse(
@@ -88,7 +88,7 @@ class TestPreprocessing(unittest.TestCase):
             path='testdata/test_preprocessing/test_remove_unnecessary_dont_remove_main_region_expected.ysc'
         )
 
-        self.assertStatechartEqual(statechart, statechart_expected)
+        self.assertStatechartEqual(statechart_expected, statechart)
 
     def test_normalize_time_units(self):
         statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_normalize_time_units.sct')
@@ -97,12 +97,12 @@ class TestPreprocessing(unittest.TestCase):
             path='testdata/test_preprocessing/test_normalize_time_units_expected.sct'
         )
 
-        self.assertStatechartEqual(statechart, statechart_expected)
+        self.assertStatechartEqual(statechart_expected, statechart)
 
-    def assertStatechartEqual(self, statechart1: Statechart, statechart2: Statechart):
-        self.assertEqual(statechart1.definition.events, statechart2.definition.events)
-        self.assertTrue(networkx.is_isomorphic(statechart1.hierarchy, statechart2.hierarchy, node_match=node_match))
-        self.assertEqual(get_named_transitions(statechart1), get_named_transitions(statechart2))
+    def assertStatechartEqual(self, expected: Statechart, actual: Statechart):
+        self.assertEqual(expected.definition.events, actual.definition.events)
+        self.assertTrue(networkx.is_isomorphic(expected.hierarchy, actual.hierarchy, node_match=node_match))
+        self.assertEqual(get_named_transitions(expected), get_named_transitions(actual))
 
 
 if __name__ == '__main__':
