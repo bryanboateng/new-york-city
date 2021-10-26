@@ -12,6 +12,18 @@ class MappingDirection(Enum):
     RIGHT_TO_LEFT = 2
 
 
+class Diff:
+    def __init__(self, unchanged: List[str], additions: List[str], deletions: List[str]):
+        self.unchanged = unchanged
+        self.additions = additions
+        self.deletions = deletions
+
+    def __eq__(self, other):
+        return self.unchanged == other.unchanged and \
+               self.additions == other.additions and \
+               self.deletions == other.deletions
+
+
 def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: List[Tuple[Any, Any]]) -> float:
     return (
                    len(matched_node_labels(graph1, graph2, mapping, MappingDirection.LEFT_TO_RIGHT)) +
@@ -82,12 +94,18 @@ def create_comparison_graph(statechart: Statechart):
     return graph
 
 
-def get_additions(statechart1: Statechart, statechart2: Statechart) -> List[str]:
+def get_diff(statechart1: Statechart, statechart2: Statechart) -> Diff:
     graph1 = create_comparison_graph(statechart1)
     graph2 = create_comparison_graph(statechart2)
 
     possible_mappings = get_all_possible_mappings(graph1, graph2)
     best_mapping = max(possible_mappings, key=lambda mapping: score(graph1, graph2, mapping))
 
+    unchanged_nodes = [x for x, y in best_mapping]
     added_nodes = [node for node in graph2.nodes if node not in [y for x, y in best_mapping]]
-    return [statechart2.hierarchy.nodes[node]['obj'].name for node in added_nodes]
+    deleted_nodes = [node for node in graph1.nodes if node not in [x for x, y in best_mapping]]
+    return Diff(
+        [statechart2.hierarchy.nodes[node]['obj'].name for node in unchanged_nodes],
+        [statechart2.hierarchy.nodes[node]['obj'].name for node in added_nodes],
+        [statechart2.hierarchy.nodes[node]['obj'].name for node in deleted_nodes]
+    )
