@@ -109,3 +109,23 @@ def get_diff(statechart1: Statechart, statechart2: Statechart) -> Diff:
         [statechart2.get_state_name(node) for node in added_nodes],
         [statechart1.get_state_name(node) for node in deleted_nodes]
     )
+
+
+def similarity(statechart1: Statechart, statechart2: Statechart) -> float:
+    diff = get_diff(statechart1, statechart2)
+    return 2 * len(diff.unchanged) / (
+            len([node for node in statechart1.hierarchy.nodes
+                 if statechart1.hierarchy.nodes[node]['ntype'] == NodeType.STATE]) +
+            len([node for node in statechart2.hierarchy.nodes
+                 if statechart2.hierarchy.nodes[node]['ntype'] == NodeType.STATE])
+    )
+
+
+def max_similarity(statechart1: Statechart, statechart2: Statechart) -> float:
+    return max(single_similarity(statechart1, statechart2), single_similarity(statechart2, statechart1))
+
+
+def single_similarity(statechart1: Statechart, statechart2: Statechart):
+    diff = get_diff(statechart1, statechart2)
+    return len(diff.unchanged) / len(
+        [node for node in statechart1.hierarchy.nodes if statechart1.hierarchy.nodes[node]['ntype'] == NodeType.STATE])
