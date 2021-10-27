@@ -16,7 +16,7 @@ class TestMatching(unittest.TestCase):
         statechart2 = StatechartParser().parse(path='testdata/test_matching/test2.ysc')
 
         self.assertEqual(
-            Diff(['Off', 'On'], ['Mid'], []),
+            Diff(['_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA'], ['_ZG7dMDPkEeyXfeIrKnJaqg'], []),
             charlie.get_diff(statechart1, statechart2)
         )
         self.assertEqual(1, charlie.max_similarity(statechart1, statechart2))

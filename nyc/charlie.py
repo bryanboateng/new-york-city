@@ -104,11 +104,7 @@ def get_diff(statechart1: Statechart, statechart2: Statechart) -> Diff:
     unchanged_nodes = [x for x, y in best_mapping]
     added_nodes = [node for node in graph2.nodes if node not in [y for x, y in best_mapping]]
     deleted_nodes = [node for node in graph1.nodes if node not in [x for x, y in best_mapping]]
-    return Diff(
-        [statechart1.get_state_name(node) for node in unchanged_nodes],
-        [statechart2.get_state_name(node) for node in added_nodes],
-        [statechart1.get_state_name(node) for node in deleted_nodes]
-    )
+    return Diff(unchanged_nodes, added_nodes, deleted_nodes)
 
 
 def similarity(statechart1: Statechart, statechart2: Statechart) -> float:
