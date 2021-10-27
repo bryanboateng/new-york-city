@@ -105,7 +105,7 @@ def get_diff(statechart1: Statechart, statechart2: Statechart) -> Diff:
     added_nodes = [node for node in graph2.nodes if node not in [y for x, y in best_mapping]]
     deleted_nodes = [node for node in graph1.nodes if node not in [x for x, y in best_mapping]]
     return Diff(
-        [statechart2.get_state_name(node) for node in unchanged_nodes],
+        [statechart1.get_state_name(node) for node in unchanged_nodes],
         [statechart2.get_state_name(node) for node in added_nodes],
-        [statechart2.get_state_name(node) for node in deleted_nodes]
+        [statechart1.get_state_name(node) for node in deleted_nodes]
     )
