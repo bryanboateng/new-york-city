@@ -13,7 +13,8 @@ class MappingDirection(Enum):
 
 
 class Diff:
-    def __init__(self, unchanged: List[str], additions: List[str], deletions: List[str]):
+    def __init__(self, unchanged: List[Tuple[Any, str]], additions: List[Tuple[Any, str]],
+                 deletions: List[Tuple[Any, str]]):
         self.unchanged = unchanged
         self.additions = additions
         self.deletions = deletions
@@ -90,7 +91,10 @@ def create_comparison_graph(statechart: Statechart):
     for node in [
         node for node in statechart.hierarchy.nodes if statechart.hierarchy.nodes[node]['ntype'] == NodeType.STATE
     ]:
-        graph.add_node(node, labels=['state'])
+        labels = ['state']
+        if statechart.hierarchy.nodes[node]['obj'].initial:
+            labels.append('initial')
+        graph.add_node(node, labels=labels)
     return graph
 
 
@@ -101,20 +105,19 @@ def get_diff(statechart1: Statechart, statechart2: Statechart) -> Diff:
     possible_mappings = get_all_possible_mappings(graph1, graph2)
     best_mapping = max(possible_mappings, key=lambda mapping: score(graph1, graph2, mapping))
 
-    unchanged_nodes = [x for x, y in best_mapping]
-    added_nodes = [node for node in graph2.nodes if node not in [y for x, y in best_mapping]]
-    deleted_nodes = [node for node in graph1.nodes if node not in [x for x, y in best_mapping]]
-    return Diff(unchanged_nodes, added_nodes, deleted_nodes)
+    unchanged = matched_node_labels(graph1, graph2, best_mapping, MappingDirection.LEFT_TO_RIGHT)
+    added = [x for x in get_labeled_nodes(graph2)
+             if x not in matched_node_labels(graph2, graph1, best_mapping, MappingDirection.RIGHT_TO_LEFT)]
+    deleted = [x for x in get_labeled_nodes(graph1)
+               if x not in matched_node_labels(graph1, graph2, best_mapping, MappingDirection.LEFT_TO_RIGHT)]
+    return Diff(unchanged, added, deleted)
 
 
 def similarity(statechart1: Statechart, statechart2: Statechart) -> float:
     diff = get_diff(statechart1, statechart2)
-    return 2 * len(diff.unchanged) / (
-            len([node for node in statechart1.hierarchy.nodes
-                 if statechart1.hierarchy.nodes[node]['ntype'] == NodeType.STATE]) +
-            len([node for node in statechart2.hierarchy.nodes
-                 if statechart2.hierarchy.nodes[node]['ntype'] == NodeType.STATE])
-    )
+    graph1 = create_comparison_graph(statechart1)
+    graph2 = create_comparison_graph(statechart2)
+    return 2 * len(diff.unchanged) / (len(get_labeled_nodes(graph1)) + len(get_labeled_nodes(graph2)))
 
 
 def max_similarity(statechart1: Statechart, statechart2: Statechart) -> float:
@@ -123,5 +126,5 @@ def max_similarity(statechart1: Statechart, statechart2: Statechart) -> float:
 
 def single_similarity(statechart1: Statechart, statechart2: Statechart):
     diff = get_diff(statechart1, statechart2)
-    return len(diff.unchanged) / len(
-        [node for node in statechart1.hierarchy.nodes if statechart1.hierarchy.nodes[node]['ntype'] == NodeType.STATE])
+    graph1 = create_comparison_graph(statechart1)
+    return len(diff.unchanged) / len(get_labeled_nodes(graph1))

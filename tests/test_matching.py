@@ -16,13 +16,23 @@ class TestMatching(unittest.TestCase):
         statechart2 = StatechartParser().parse(path='testdata/test_matching/test2.ysc')
 
         self.assertEqual(
-            Diff(['_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA'], ['_ZG7dMDPkEeyXfeIrKnJaqg'], []),
+            Diff(
+                unchanged=[
+                    ('_3ASwp5OAEeWuO-fDDpYHyA', 'state'),
+                    ('_3ASwp5OAEeWuO-fDDpYHyA', 'initial'),
+                    ('_Muq1cJQtEeWuO-fDDpYHyA', 'state')
+                ],
+                additions=[
+                    ('_ZG7dMDPkEeyXfeIrKnJaqg', 'state')
+                ],
+                deletions=[]
+            ),
             charlie.get_diff(statechart1, statechart2)
         )
         self.assertEqual(1, charlie.max_similarity(statechart1, statechart2))
         self.assertEqual(1, charlie.single_similarity(statechart1, statechart2))
-        self.assertEqual(2 / 3, charlie.single_similarity(statechart2, statechart1))
-        self.assertEqual(4 / 5, charlie.similarity(statechart1, statechart2))
+        self.assertEqual(3 / 4, charlie.single_similarity(statechart2, statechart1))
+        self.assertEqual(6 / 7, charlie.similarity(statechart1, statechart2))
 
 
 if __name__ == '__main__':
