@@ -17,22 +17,30 @@ class TestMatching(unittest.TestCase):
 
         self.assertEqual(
             Diff(
-                unchanged=[
+                unchanged_node_features=[
                     ('_3ASwp5OAEeWuO-fDDpYHyA', 'state'),
                     ('_3ASwp5OAEeWuO-fDDpYHyA', 'initial'),
                     ('_Muq1cJQtEeWuO-fDDpYHyA', 'state')
                 ],
-                additions=[
+                unchanged_edge_features=[
+                    ('_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA', 'edge'),
+                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA', 'edge')
+                ],
+                added_node_features=[
                     ('_ZG7dMDPkEeyXfeIrKnJaqg', 'state')
                 ],
-                deletions=[]
+                added_edge_features=[
+                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_ZG7dMDPkEeyXfeIrKnJaqg', 'edge')
+                ],
+                deleted_node_features=[],
+                deleted_edge_features=[]
             ),
             charlie.get_diff(statechart1, statechart2)
         )
         self.assertEqual(1, charlie.max_similarity(statechart1, statechart2))
         self.assertEqual(1, charlie.single_similarity(statechart1, statechart2))
-        self.assertEqual(3 / 4, charlie.single_similarity(statechart2, statechart1))
-        self.assertEqual(6 / 7, charlie.similarity(statechart1, statechart2))
+        self.assertEqual(5 / 7, charlie.single_similarity(statechart2, statechart1))
+        self.assertEqual(5 / 6, charlie.similarity(statechart1, statechart2))
 
 
 if __name__ == '__main__':
