@@ -137,7 +137,7 @@ def create_comparison_graph(statechart: Statechart):
         graph.add_node(node, labels=labels)
         for transitions in statechart.transitions.values():
             for transition in transitions:
-                graph.add_edge(transition.source_id, transition.target_id, labels=['edge'])
+                graph.add_edge(transition.source_id, transition.target_id, labels=['transition'])
                 for trigger in transition.specification.triggers:
                     graph[transition.source_id][transition.target_id]['labels'].append('trigger_' + trigger)
     return graph
