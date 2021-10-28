@@ -24,13 +24,16 @@ class TestMatching(unittest.TestCase):
                 ],
                 unchanged_edge_features=[
                     ('_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA', 'edge'),
-                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA', 'edge')
+                    ('_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA', 'trigger_operate'),
+                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA', 'edge'),
+                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA', 'trigger_operate')
                 ],
                 added_node_features=[
                     ('_ZG7dMDPkEeyXfeIrKnJaqg', 'state')
                 ],
                 added_edge_features=[
-                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_ZG7dMDPkEeyXfeIrKnJaqg', 'edge')
+                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_ZG7dMDPkEeyXfeIrKnJaqg', 'edge'),
+                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_ZG7dMDPkEeyXfeIrKnJaqg', 'trigger_control')
                 ],
                 deleted_node_features=[],
                 deleted_edge_features=[]
@@ -39,8 +42,8 @@ class TestMatching(unittest.TestCase):
         )
         self.assertEqual(1, charlie.max_similarity(statechart1, statechart2))
         self.assertEqual(1, charlie.single_similarity(statechart1, statechart2))
-        self.assertEqual(5 / 7, charlie.single_similarity(statechart2, statechart1))
-        self.assertEqual(5 / 6, charlie.similarity(statechart1, statechart2))
+        self.assertEqual(7 / 10, charlie.single_similarity(statechart2, statechart1))
+        self.assertEqual(14 / 17, charlie.similarity(statechart1, statechart2))
 
 
 if __name__ == '__main__':
