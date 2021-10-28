@@ -100,11 +100,11 @@ def labeled_edge_is_matched(labeled_edge: Tuple[Any, Any, Any], mapping: List[Tu
 
 def apply_mapping(node: Any, mapping: List[Tuple[Any, Any]], mapping_direction: MappingDirection):
     relevant_mapping_elements = [(x, y) for x, y in mapping if
-                                 (x if mapping_direction == MappingDirection.RIGHT_TO_LEFT else y) == node]
+                                 (x if mapping_direction == MappingDirection.LEFT_TO_RIGHT else y) == node]
     if len(relevant_mapping_elements) > 1:
         raise ValueError('A very specific bad thing happened')
     elif len(relevant_mapping_elements) == 1:
-        return relevant_mapping_elements[0][1 if mapping_direction == MappingDirection.RIGHT_TO_LEFT else 0]
+        return relevant_mapping_elements[0][1 if mapping_direction == MappingDirection.LEFT_TO_RIGHT else 0]
 
 
 def mapping_has_splits(mapping: List[list]):
