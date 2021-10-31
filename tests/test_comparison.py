@@ -5,17 +5,17 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
 
 import unittest
 
-from nyc import statechart_comparator
-from nyc.statechart_comparator import Diff
+from nyc import comparator
+from nyc.comparator import Diff
 from yak_parser.StatechartParser import StatechartParser
 
 
 class TestComparator(unittest.TestCase):
     def test(self):
-        statechart1 = StatechartParser().parse(path='testdata/test_comparator/test11.ysc')
-        statechart2 = StatechartParser().parse(path='testdata/test_comparator/test12.ysc')
+        statechart1 = StatechartParser().parse(path='testdata/test_comparison/test11.ysc')
+        statechart2 = StatechartParser().parse(path='testdata/test_comparison/test12.ysc')
 
-        comparison_result = statechart_comparator.compare(statechart1, statechart2)
+        comparison_result = comparator.compare(statechart1, statechart2)
         self.assertEqual(
             Diff(
                 matching_node_labels=[
@@ -59,10 +59,10 @@ class TestComparator(unittest.TestCase):
         self.assertEqual(14 / 17, comparison_result.similarity)
 
     def test2(self):
-        statechart1 = StatechartParser().parse(path='testdata/test_comparator/test21.ysc')
-        statechart2 = StatechartParser().parse(path='testdata/test_comparator/test22.ysc')
+        statechart1 = StatechartParser().parse(path='testdata/test_comparison/test21.ysc')
+        statechart2 = StatechartParser().parse(path='testdata/test_comparison/test22.ysc')
 
-        comparison_result = statechart_comparator.compare(statechart1, statechart2)
+        comparison_result = comparator.compare(statechart1, statechart2)
         self.assertEqual(
             Diff(
                 matching_node_labels=[
