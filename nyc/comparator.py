@@ -1,6 +1,6 @@
 import itertools
 from collections import Counter
-from typing import List, Tuple, Any, Optional
+from typing import List, Tuple, Any, Optional, Set
 
 import networkx
 from yak_parser.Statechart import Statechart, NodeType
@@ -8,12 +8,12 @@ from yak_parser.Statechart import Statechart, NodeType
 
 class Diff:
     def __init__(self,
-                 matching_node_labels: List[Tuple[Tuple[Any, str], Tuple[Any, str]]],
-                 matching_edge_labels: List[Tuple[Tuple[Any, Any, str], Tuple[Any, Any, str]]],
-                 added_node_labels: List[Tuple[Any, str]],
-                 added_edge_labels: List[Tuple[Any, Any, str]],
-                 deleted_node_labels: List[Tuple[Any, str]],
-                 deleted_edge_labels: List[Tuple[Any, Any, str]]
+                 matching_node_labels: Set[Tuple[Tuple[Any, str], Tuple[Any, str]]],
+                 matching_edge_labels: Set[Tuple[Tuple[Any, Any, str], Tuple[Any, Any, str]]],
+                 added_node_labels: Set[Tuple[Any, str]],
+                 added_edge_labels: Set[Tuple[Any, Any, str]],
+                 deleted_node_labels: Set[Tuple[Any, str]],
+                 deleted_edge_labels: Set[Tuple[Any, Any, str]]
                  ):
         self.matching_node_labels = matching_node_labels
         self.matching_edge_labels = matching_edge_labels
@@ -81,14 +81,14 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
     diff = Diff(
         matching_node_labels,
         matching_edge_labels,
-        added_node_labels=[labeled_node for labeled_node in get_labeled_nodes(graph2) if labeled_node not in
-                           [match[1] for match in matching_node_labels]],
-        added_edge_labels=[labeled_node for labeled_node in get_labeled_edges(graph2) if labeled_node not in
-                           [match[1] for match in matching_edge_labels]],
-        deleted_node_labels=[labeled_node for labeled_node in get_labeled_nodes(graph1) if labeled_node not in
-                             [match[0] for match in matching_node_labels]],
-        deleted_edge_labels=[labeled_node for labeled_node in get_labeled_edges(graph1) if labeled_node not in
-                             [match[0] for match in matching_edge_labels]]
+        added_node_labels={labeled_node for labeled_node in get_labeled_nodes(graph2) if labeled_node not in
+                           [match[1] for match in matching_node_labels]},
+        added_edge_labels={labeled_node for labeled_node in get_labeled_edges(graph2) if labeled_node not in
+                           [match[1] for match in matching_edge_labels]},
+        deleted_node_labels={labeled_node for labeled_node in get_labeled_nodes(graph1) if labeled_node not in
+                             [match[0] for match in matching_node_labels]},
+        deleted_edge_labels={labeled_node for labeled_node in get_labeled_edges(graph1) if labeled_node not in
+                             [match[0] for match in matching_edge_labels]}
     )
     return ComparisonResult(diff)
 
@@ -101,7 +101,7 @@ def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph
         combinations: List[List[list]] = [list(x) for x in list(itertools.combinations(product_list, i))]
         mappings.extend(combinations)
     all_possible_mappings_list = [mapping for mapping in mappings if not mapping_has_splits(mapping)]
-    return [[(x[0], x[1]) for x in mapping] for mapping in all_possible_mappings_list]
+    return [{(x[0], x[1]) for x in mapping} for mapping in all_possible_mappings_list]
 
 
 def mapping_has_splits(mapping: List[list]):
@@ -117,19 +117,21 @@ def create_comparison_graph(statechart: Statechart):
     for node in [
         node for node in statechart.hierarchy.nodes if statechart.hierarchy.nodes[node]['ntype'] == NodeType.STATE
     ]:
-        labels = ['state']
+        labels = {'state'}
         if statechart.hierarchy.nodes[node]['obj'].initial:
-            labels.append('initial')
+            labels.add('initial')
         graph.add_node(node, labels=labels)
         for transitions in statechart.transitions.values():
             for transition in transitions:
-                graph.add_edge(transition.source_id, transition.target_id, labels=['transition'])
+                graph.add_edge(transition.source_id, transition.target_id, labels={'transition'})
                 for trigger in transition.specification.triggers:
-                    graph[transition.source_id][transition.target_id]['labels'].append('trigger_' + trigger)
+                    graph[transition.source_id][transition.target_id]['labels'].add('trigger_' + trigger)
+                for effect in transition.specification.effects:
+                    graph[transition.source_id][transition.target_id]['labels'].add('effect_' + effect)
     return graph
 
 
-def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: List[Tuple[Any, Any]]) -> float:
+def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) -> float:
     return (
                    2 * len(get_matching_node_labels(graph1, graph2, mapping)) +
                    2 * len(get_matching_edge_labels(graph1, graph2, mapping))
@@ -142,25 +144,25 @@ def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: List[Tupl
            )
 
 
-def get_matching_node_labels(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: List[Tuple[Any, Any]]):
-    matches = []
+def get_matching_node_labels(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]):
+    matches = set()
     for labeled_node in get_labeled_nodes(graph1):
         match = get_matching_labeled_node(labeled_node, mapping, graph2)
         if match is not None:
-            matches.append((labeled_node, match))
+            matches.add((labeled_node, match))
     return matches
 
 
-def get_matching_edge_labels(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: List[Tuple[Any, Any]]):
-    matches = []
+def get_matching_edge_labels(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]):
+    matches = set()
     for labeled_edge in get_labeled_edges(graph1):
         match = get_matching_labeled_edge(labeled_edge, mapping, graph2)
         if match is not None:
-            matches.append((labeled_edge, match))
+            matches.add((labeled_edge, match))
     return matches
 
 
-def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: List[Tuple[Any, Any]], graph: networkx.DiGraph) \
+def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: Set[Tuple[Any, Any]], graph: networkx.DiGraph) \
         -> Optional[Tuple[Any, str]]:
     mapped_node = apply_mapping(labeled_node[0], mapping)
     matching_labeled_nodes = [(node, label) for node, label in get_labeled_nodes(graph)
@@ -173,7 +175,7 @@ def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: List[Tuple
             return matching_labeled_node
 
 
-def get_matching_labeled_edge(labeled_edge: Tuple[Any, Any, str], mapping: List[Tuple[Any, Any]],
+def get_matching_labeled_edge(labeled_edge: Tuple[Any, Any, str], mapping: Set[Tuple[Any, Any]],
                               graph: networkx.DiGraph) -> Optional[Tuple[Any, Any, str]]:
     mapped_origin_node = apply_mapping(labeled_edge[0], mapping)
     mapped_destination_node = apply_mapping(labeled_edge[1], mapping)
@@ -188,7 +190,7 @@ def get_matching_labeled_edge(labeled_edge: Tuple[Any, Any, str], mapping: List[
             return matching_labeled_edge
 
 
-def apply_mapping(node: Any, mapping: List[Tuple[Any, Any]]):
+def apply_mapping(node: Any, mapping: Set[Tuple[Any, Any]]):
     relevant_mapping_elements = [(x, y) for x, y in mapping if x == node]
     if len(relevant_mapping_elements) > 1:
         raise ValueError('A very specific bad thing happened')
@@ -197,18 +199,18 @@ def apply_mapping(node: Any, mapping: List[Tuple[Any, Any]]):
 
 
 def get_labeled_nodes(graph: networkx.DiGraph):
-    return [
+    return {
         grandchild for sublist in
         [[(node, label) for label in labels] for (node, labels) in
          networkx.get_node_attributes(graph, 'labels').items()]
         for grandchild in sublist
-    ]
+    }
 
 
 def get_labeled_edges(graph: networkx.DiGraph):
-    return [
+    return {
         grandchild for sublist in
         [[(edge[0], edge[1], label) for label in labels] for (edge, labels) in
          networkx.get_edge_attributes(graph, 'labels').items()]
         for grandchild in sublist
-    ]
+    }
