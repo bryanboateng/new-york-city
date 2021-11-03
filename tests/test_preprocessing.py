@@ -44,7 +44,7 @@ def transition_convert_ids_to_names(transition: ScTransition, statechart: Statec
     source_name = statechart.hierarchy.nodes[transition.source_id]['obj'].name
     target_name = statechart.hierarchy.nodes[transition.target_id]['obj'].name
 
-    return ScTransition(source_name, target_name, transition.specification)
+    return source_name, target_name, transition.specification
 
 
 class TestPreprocessing(unittest.TestCase):
