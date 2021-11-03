@@ -8,12 +8,12 @@ from yak_parser.Statechart import Statechart, NodeType
 
 class Diff:
     def __init__(self, matches: Set[Tuple[Tuple[Any, str], Tuple[Any, str]]], additions: Set[Tuple[Any, str]],
-                 deletions: Set[Tuple[Any, str]], ):
+                 deletions: Set[Tuple[Any, str]]):
         self.matches = matches
         self.additions = additions
         self.deletions = deletions
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.matches == other.matches and \
                self.additions == other.additions and \
                self.deletions == other.deletions
@@ -24,7 +24,7 @@ class ComparisonResult:
         self.diff = diff
 
     @property
-    def similarity(self):
+    def similarity(self) -> float:
         return 2 * len(self.diff.matches) / \
                (
                        len(self.diff.matches) + len(self.diff.deletions) +
@@ -36,18 +36,17 @@ class ComparisonResult:
         return max(self.single_similarity0, self.single_similarity1)
 
     @property
-    def single_similarity0(self):
+    def single_similarity0(self) -> float:
         return self.__single_similarity(0)
 
     @property
-    def single_similarity1(self):
+    def single_similarity1(self) -> float:
         return self.__single_similarity(1)
 
-    def __single_similarity(self, similarity_type: int):
+    def __single_similarity(self, similarity_type: int) -> float:
         if similarity_type != 0 and similarity_type != 1:
             raise ValueError('A very specific bad thing happened')
-        return len(self.diff.matches) / \
-               (
+        return len(self.diff.matches) / (
                        len(self.diff.matches) +
                        len(self.diff.additions if similarity_type else self.diff.deletions)
                )
@@ -78,7 +77,7 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
     return ComparisonResult(diff)
 
 
-def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph):
+def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> List[Set[Tuple[Any, Any]]]:
     graph1_labels = networkx.get_node_attributes(graph1, 'labels').items()
     graph2_labels = networkx.get_node_attributes(graph2, 'labels').items()
 
@@ -87,10 +86,9 @@ def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph
     graph1_transitions = get_transitions(graph1_labels)
     graph2_transitions = get_transitions(graph2_labels)
 
-    all_possible_state_mappings = [{(x[0], x[1]) for x in mapping} for mapping in
-                                   get_mappings(graph1_states, graph2_states) if not mapping_has_splits(mapping)]
-    all_possible_transition_mappings = [{(x[0], x[1]) for x in mapping} for mapping in
-                                        get_mappings(graph1_transitions, graph2_transitions)
+    all_possible_state_mappings = [mapping for mapping in get_mappings(graph1_states, graph2_states)
+                                   if not mapping_has_splits(mapping)]
+    all_possible_transition_mappings = [mapping for mapping in get_mappings(graph1_transitions, graph2_transitions)
                                         if not mapping_has_splits(mapping)]
 
     return [set.union(state_mapping, transition_mapping) for state_mapping, transition_mapping in
@@ -99,34 +97,34 @@ def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph
                    transition_mapping_element in transition_mapping)]
 
 
-def get_states(graph_labels):
+def get_states(graph_labels) -> Set[Any]:
     return {node for node, labels in graph_labels if 'state' in labels}
 
 
-def get_transitions(graph_labels):
+def get_transitions(graph_labels) -> Set[Any]:
     return {node for node, labels in graph_labels if 'transition' in labels}
 
 
-def get_mappings(set1: Set[Any], set2: Set[Any]):
+def get_mappings(set1: Set[Any], set2: Set[Any]) -> List[Set[Tuple[Any, Any]]]:
     mappings = []
     product = list(itertools.product(set1, set2))
     product_list = [list(x) for x in product]
     for i in range(0, len(product) + 1):
-        combinations: List[List[list]] = [list(x) for x in list(itertools.combinations(product_list, i))]
+        combinations = [list(x) for x in list(itertools.combinations(product_list, i))]
         mappings.extend(combinations)
-    return mappings
+    return [{(x, y) for x, y in mapping} for mapping in mappings]
 
 
-def mapping_has_splits(mapping: List[list]):
-    left_mapping_nodes_counted = Counter([x[0] for x in mapping])
-    right_mapping_nodes_counted = Counter([x[1] for x in mapping])
+def mapping_has_splits(mapping: Set[Tuple[Any, Any]]) -> bool:
+    left_mapping_nodes_counted = Counter([x for x, y in mapping])
+    right_mapping_nodes_counted = Counter([y for x, y in mapping])
     return \
         any(count > 1 for count in left_mapping_nodes_counted.values()) or \
         any(count > 1 for count in right_mapping_nodes_counted.values())
 
 
 def transition_mapping_element_is_valid(transition_mapping_element, state_mapping, graph1: networkx.DiGraph,
-                                        graph2: networkx.DiGraph):
+                                        graph2: networkx.DiGraph) -> bool:
     source_state1 = get_source_state(graph1, transition_mapping_element[0])
     source_state2 = get_source_state(graph2, transition_mapping_element[1])
 
@@ -136,21 +134,22 @@ def transition_mapping_element_is_valid(transition_mapping_element, state_mappin
     return (source_state1, source_state2) in state_mapping or (target_state1, target_state2) in state_mapping
 
 
-def get_source_state(graph: networkx.DiGraph, transition):
+def get_source_state(graph: networkx.DiGraph, transition) -> Any:
     in_edges = list(graph.in_edges(transition))
     if len(in_edges) != 1:
         raise ValueError('A very specific bad thing happened')
     return in_edges[0][0]
 
 
-def get_target_state(graph: networkx.DiGraph, transition):
+def get_target_state(graph: networkx.DiGraph, transition) -> Any:
+    # noinspection PyArgumentList
     out_edges = list(graph.out_edges(transition))
     if len(out_edges) != 1:
         raise ValueError('A very specific bad thing happened')
     return out_edges[0][1]
 
 
-def create_comparison_graph(statechart: Statechart):
+def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
     graph = networkx.DiGraph()
     for node in [
         node for node in statechart.hierarchy.nodes if statechart.hierarchy.nodes[node]['ntype'] == NodeType.STATE
@@ -172,7 +171,7 @@ def create_comparison_graph(statechart: Statechart):
     return graph
 
 
-def create_tie_break_comparison_graph(statechart: Statechart):
+def create_tie_break_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
     graph = networkx.DiGraph()
     for node in [
         node for node in statechart.hierarchy.nodes if statechart.hierarchy.nodes[node]['ntype'] == NodeType.STATE
@@ -191,7 +190,8 @@ def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple
            )
 
 
-def get_matches(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]):
+def get_matches(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) \
+        -> Set[Tuple[Tuple[Any, str], Tuple[Any, str]]]:
     matches = set()
     for labeled_node in get_labeled_nodes(graph1):
         match = get_matching_labeled_node(labeled_node, mapping, graph2)
@@ -213,7 +213,7 @@ def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: Set[Tuple[
             return matching_labeled_node
 
 
-def apply_mapping(node: Any, mapping: Set[Tuple[Any, Any]]):
+def apply_mapping(node: Any, mapping: Set[Tuple[Any, Any]]) -> Optional[Any]:
     relevant_mapping_elements = [(x, y) for x, y in mapping if x == node]
     if len(relevant_mapping_elements) > 1:
         raise ValueError('A very specific bad thing happened')
@@ -221,7 +221,7 @@ def apply_mapping(node: Any, mapping: Set[Tuple[Any, Any]]):
         return relevant_mapping_elements[0][1]
 
 
-def get_labeled_nodes(graph: networkx.DiGraph):
+def get_labeled_nodes(graph: networkx.DiGraph) -> Set[Tuple[Any, str]]:
     return {
         grandchild for sublist in
         [[(node, label) for label in labels] for (node, labels) in
@@ -230,7 +230,7 @@ def get_labeled_nodes(graph: networkx.DiGraph):
     }
 
 
-def maxima(iterable, key):
+def maxima(iterable: List[Any], key) -> List[Any]:
     elements_scored = [(element, key(element)) for element in iterable]
     max_score = max([score_ for element, score_ in elements_scored])
     return [element for element, score_ in elements_scored if score_ == max_score]
