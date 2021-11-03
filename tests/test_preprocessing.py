@@ -50,7 +50,7 @@ def transition_convert_ids_to_names(transition: ScTransition, statechart: Statec
 class TestPreprocessing(unittest.TestCase):
     def test_remove_unreachable_states(self):
         statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_remove_unreachable_states.ysc')
-        processor.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unreachable_states_expected.ysc'
         )
@@ -61,7 +61,7 @@ class TestPreprocessing(unittest.TestCase):
         statechart = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_transfer_transitions.ysc'
         )
-        processor.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_transfer_transitions_expected.ysc'
         )
@@ -72,7 +72,7 @@ class TestPreprocessing(unittest.TestCase):
         statechart = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_orthogonal_state.ysc'
         )
-        processor.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_orthogonal_state_expected.ysc'
         )
@@ -83,7 +83,7 @@ class TestPreprocessing(unittest.TestCase):
         statechart = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_dont_remove_main_region.ysc'
         )
-        processor.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_dont_remove_main_region_expected.ysc'
         )
@@ -92,7 +92,7 @@ class TestPreprocessing(unittest.TestCase):
 
     def test_normalize_time_units(self):
         statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_normalize_time_units.sct')
-        processor.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_normalize_time_units_expected.sct'
         )
