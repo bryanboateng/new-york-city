@@ -18,38 +18,21 @@ class TestComparator(unittest.TestCase):
         comparison_result = comparator.compare(statechart1, statechart2)
         self.assertEqual(
             Diff(
-                matching_node_labels={
+                matches={
                     (('_3ASwp5OAEeWuO-fDDpYHyA', 'state'), ('_3ASwp5OAEeWuO-fDDpYHyA', 'state')),
                     (('_3ASwp5OAEeWuO-fDDpYHyA', 'initial'), ('_3ASwp5OAEeWuO-fDDpYHyA', 'initial')),
-                    (('_Muq1cJQtEeWuO-fDDpYHyA', 'state'), ('_Muq1cJQtEeWuO-fDDpYHyA', 'state'))
+                    (('_Muq1cJQtEeWuO-fDDpYHyA', 'state'), ('_Muq1cJQtEeWuO-fDDpYHyA', 'state')),
+                    (('_Er2m0JQzEeWuO-fDDpYHyA', 'transition'), ('_Er2m0JQzEeWuO-fDDpYHyA', 'transition')),
+                    (('_Er2m0JQzEeWuO-fDDpYHyA', 'trigger_operate'), ('_Er2m0JQzEeWuO-fDDpYHyA', 'trigger_operate')),
+                    (('_QwgAQJQ6EeWuO-fDDpYHyA', 'transition'), ('_QwgAQJQ6EeWuO-fDDpYHyA', 'transition')),
+                    (('_QwgAQJQ6EeWuO-fDDpYHyA', 'trigger_operate'), ('_QwgAQJQ6EeWuO-fDDpYHyA', 'trigger_operate'))
                 },
-                matching_edge_labels={
-                    (
-                        ('_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA', 'transition'),
-                        ('_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA', 'transition')
-                    ),
-                    (
-                        ('_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA', 'trigger_operate'),
-                        ('_3ASwp5OAEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA', 'trigger_operate')
-                    ),
-                    (
-                        ('_Muq1cJQtEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA', 'transition'),
-                        ('_Muq1cJQtEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA', 'transition')
-                    ),
-                    (
-                        ('_Muq1cJQtEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA', 'trigger_operate'),
-                        ('_Muq1cJQtEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA', 'trigger_operate')
-                    )
+                additions={
+                    ('_ZG7dMDPkEeyXfeIrKnJaqg', 'state'),
+                    ('_b3xNIDPkEeyXfeIrKnJaqg', 'transition'),
+                    ('_b3xNIDPkEeyXfeIrKnJaqg', 'trigger_control')
                 },
-                added_node_labels={
-                    ('_ZG7dMDPkEeyXfeIrKnJaqg', 'state')
-                },
-                added_edge_labels={
-                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_ZG7dMDPkEeyXfeIrKnJaqg', 'transition'),
-                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_ZG7dMDPkEeyXfeIrKnJaqg', 'trigger_control')
-                },
-                deleted_node_labels=set(),
-                deleted_edge_labels=set()
+                deletions=set(),
             ),
             comparison_result.diff
         )
@@ -65,31 +48,20 @@ class TestComparator(unittest.TestCase):
         comparison_result = comparator.compare(statechart1, statechart2)
         self.assertEqual(
             Diff(
-                matching_node_labels={
+                matches={
                     (('_A2j7xjglEeykxvg1BffPgg', 'state'), ('_TzjKMDglEeykxvg1BffPgg', 'state')),
                     (('_A2j7xjglEeykxvg1BffPgg', 'initial'), ('_TzjKMDglEeykxvg1BffPgg', 'initial')),
-                    (('_A2ki2TglEeykxvg1BffPgg', 'state'), ('_TzjKOjglEeykxvg1BffPgg', 'state'))
+                    (('_A2ki2TglEeykxvg1BffPgg', 'state'), ('_TzjKOjglEeykxvg1BffPgg', 'state')),
+                    (('_A2ki0jglEeykxvg1BffPgg', 'transition'), ('_TzjKMzglEeykxvg1BffPgg', 'transition')),
+                    (('_A2ki0jglEeykxvg1BffPgg', 'trigger_myEvent'), ('_TzjKMzglEeykxvg1BffPgg', 'trigger_myEvent'))
                 },
-                matching_edge_labels={
-                    (
-                        ('_A2j7xjglEeykxvg1BffPgg', '_A2ki2TglEeykxvg1BffPgg', 'transition'),
-                        ('_TzjKMDglEeykxvg1BffPgg', '_TzjKOjglEeykxvg1BffPgg', 'transition')
-                    ),
-                    (
-                        ('_A2j7xjglEeykxvg1BffPgg', '_A2ki2TglEeykxvg1BffPgg', 'trigger_myEvent'),
-                        ('_TzjKMDglEeykxvg1BffPgg', '_TzjKOjglEeykxvg1BffPgg', 'trigger_myEvent')
-                    )
-                },
-                added_node_labels=set(),
-                added_edge_labels=set(),
-                deleted_node_labels={
-                    ('_KA5kYDglEeykxvg1BffPgg', 'state')
-                },
-                deleted_edge_labels={
-                    ('_A2ki2TglEeykxvg1BffPgg', '_KA5kYDglEeykxvg1BffPgg', 'transition'),
-                    ('_A2ki2TglEeykxvg1BffPgg', '_KA5kYDglEeykxvg1BffPgg', 'trigger_myEvent'),
-                    ('_KA5kYDglEeykxvg1BffPgg', '_A2j7xjglEeykxvg1BffPgg', 'transition'),
-                    ('_KA5kYDglEeykxvg1BffPgg', '_A2j7xjglEeykxvg1BffPgg', 'trigger_myEvent')
+                additions=set(),
+                deletions={
+                    ('_KA5kYDglEeykxvg1BffPgg', 'state'),
+                    ('_A2lJ4jglEeykxvg1BffPgg', 'transition'),
+                    ('_A2lJ4jglEeykxvg1BffPgg', 'trigger_myEvent'),
+                    ('_M1EVIDglEeykxvg1BffPgg', 'transition'),
+                    ('_M1EVIDglEeykxvg1BffPgg', 'trigger_myEvent')
                 }
             ),
             comparison_result.diff
@@ -106,54 +78,22 @@ class TestComparator(unittest.TestCase):
         comparison_result = comparator.compare(statechart1, statechart2)
         self.assertEqual(
             Diff(
-                matching_node_labels={
+                matches={
                     (('_KvbzwB2oEeqjLfLN91KIGQ', 'state'), ('_Un6xkDpCEeyc9LxDSVYQGA', 'state')),
                     (('_KvbzwB2oEeqjLfLN91KIGQ', 'initial'), ('_Un6xkDpCEeyc9LxDSVYQGA', 'initial')),
-                    (('_LI9HAB2oEeqjLfLN91KIGQ', 'state'), ('_Un7YqTpCEeyc9LxDSVYQGA', 'state'))
+                    (('_LI9HAB2oEeqjLfLN91KIGQ', 'state'), ('_Un7YqTpCEeyc9LxDSVYQGA', 'state')),
+                    (('_TZxGoB2oEeqjLfLN91KIGQ', 'transition'), ('_Un7YrDpCEeyc9LxDSVYQGA', 'transition')),
+                    (('_TZxGoB2oEeqjLfLN91KIGQ', 'trigger_Panel.btn_pressed'), ('_Un7YrDpCEeyc9LxDSVYQGA', 'trigger_Panel.btn_pressed')),
+                    (('_TZxGoB2oEeqjLfLN91KIGQ', 'effect_z=0'), ('_Un7YrDpCEeyc9LxDSVYQGA', 'effect_z=0')),
+                    (('_1MQwwB2oEeqjLfLN91KIGQ', 'transition'), ('_Un7YojpCEeyc9LxDSVYQGA', 'transition')),
+                    (('_1MQwwB2oEeqjLfLN91KIGQ', 'trigger_vier'), ('_Un7YojpCEeyc9LxDSVYQGA', 'trigger_vier')),
+                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'transition'), ('_pR-l0DpCEeyc9LxDSVYQGA', 'transition')),
+                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'trigger_after 1000000 ns'), ('_pR-l0DpCEeyc9LxDSVYQGA', 'trigger_after 1000000 ns')),
+                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'effect_pau=2'), ('_pR-l0DpCEeyc9LxDSVYQGA', 'effect_pau=2')),
+                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'effect_raise vier'), ('_pR-l0DpCEeyc9LxDSVYQGA', 'effect_raise vier'))
                 },
-                matching_edge_labels={
-                    (
-                        ('_KvbzwB2oEeqjLfLN91KIGQ', '_LI9HAB2oEeqjLfLN91KIGQ', 'transition'),
-                        ('_Un6xkDpCEeyc9LxDSVYQGA', '_Un7YqTpCEeyc9LxDSVYQGA', 'transition')
-                    ),
-                    (
-                        ('_KvbzwB2oEeqjLfLN91KIGQ', '_LI9HAB2oEeqjLfLN91KIGQ', 'trigger_Panel.btn_pressed'),
-                        ('_Un6xkDpCEeyc9LxDSVYQGA', '_Un7YqTpCEeyc9LxDSVYQGA', 'trigger_Panel.btn_pressed')
-                    ),
-                    (
-                        ('_KvbzwB2oEeqjLfLN91KIGQ', '_LI9HAB2oEeqjLfLN91KIGQ', 'effect_z=0'),
-                        ('_Un6xkDpCEeyc9LxDSVYQGA', '_Un7YqTpCEeyc9LxDSVYQGA', 'effect_z=0')
-                    ),
-                    (
-                        ('_LI9HAB2oEeqjLfLN91KIGQ', '_KvbzwB2oEeqjLfLN91KIGQ', 'transition'),
-                        ('_Un7YqTpCEeyc9LxDSVYQGA', '_Un6xkDpCEeyc9LxDSVYQGA', 'transition')
-                    ),
-                    (
-                        ('_LI9HAB2oEeqjLfLN91KIGQ', '_KvbzwB2oEeqjLfLN91KIGQ', 'trigger_vier'),
-                        ('_Un7YqTpCEeyc9LxDSVYQGA', '_Un6xkDpCEeyc9LxDSVYQGA', 'trigger_vier')
-                    ),
-                    (
-                        ('_LI9HAB2oEeqjLfLN91KIGQ', '_LI9HAB2oEeqjLfLN91KIGQ', 'transition'),
-                        ('_Un7YqTpCEeyc9LxDSVYQGA', '_Un7YqTpCEeyc9LxDSVYQGA', 'transition')
-                    ),
-                    (
-                        ('_LI9HAB2oEeqjLfLN91KIGQ', '_LI9HAB2oEeqjLfLN91KIGQ', 'trigger_after 1000000 ns'),
-                        ('_Un7YqTpCEeyc9LxDSVYQGA', '_Un7YqTpCEeyc9LxDSVYQGA', 'trigger_after 1000000 ns')
-                    ),
-                    (
-                        ('_LI9HAB2oEeqjLfLN91KIGQ', '_LI9HAB2oEeqjLfLN91KIGQ', 'effect_pau=2'),
-                        ('_Un7YqTpCEeyc9LxDSVYQGA', '_Un7YqTpCEeyc9LxDSVYQGA', 'effect_pau=2')
-                    ),
-                    (
-                        ('_LI9HAB2oEeqjLfLN91KIGQ', '_LI9HAB2oEeqjLfLN91KIGQ', 'effect_raise vier'),
-                        ('_Un7YqTpCEeyc9LxDSVYQGA', '_Un7YqTpCEeyc9LxDSVYQGA', 'effect_raise vier')
-                    ),
-
-                },
-                added_node_labels=set(),
-                added_edge_labels=set(),
-                deleted_node_labels=set(),
-                deleted_edge_labels=set()
+                additions=set(),
+                deletions=set(),
             ),
             comparison_result.diff
         )

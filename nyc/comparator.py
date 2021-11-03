@@ -7,28 +7,16 @@ from yak_parser.Statechart import Statechart, NodeType
 
 
 class Diff:
-    def __init__(self,
-                 matching_node_labels: Set[Tuple[Tuple[Any, str], Tuple[Any, str]]],
-                 matching_edge_labels: Set[Tuple[Tuple[Any, Any, str], Tuple[Any, Any, str]]],
-                 added_node_labels: Set[Tuple[Any, str]],
-                 added_edge_labels: Set[Tuple[Any, Any, str]],
-                 deleted_node_labels: Set[Tuple[Any, str]],
-                 deleted_edge_labels: Set[Tuple[Any, Any, str]]
-                 ):
-        self.matching_node_labels = matching_node_labels
-        self.matching_edge_labels = matching_edge_labels
-        self.added_node_labels = added_node_labels
-        self.added_edge_labels = added_edge_labels
-        self.deleted_node_labels = deleted_node_labels
-        self.deleted_edge_labels = deleted_edge_labels
+    def __init__(self, matches: Set[Tuple[Tuple[Any, str], Tuple[Any, str]]], additions: Set[Tuple[Any, str]],
+                 deletions: Set[Tuple[Any, str]], ):
+        self.matches = matches
+        self.additions = additions
+        self.deletions = deletions
 
     def __eq__(self, other):
-        return self.matching_node_labels == other.matching_node_labels and \
-               self.matching_edge_labels == other.matching_edge_labels and \
-               self.added_node_labels == other.added_node_labels and \
-               self.added_edge_labels == other.added_edge_labels and \
-               self.deleted_node_labels == other.deleted_node_labels and \
-               self.deleted_edge_labels == other.deleted_edge_labels
+        return self.matches == other.matches and \
+               self.additions == other.additions and \
+               self.deletions == other.deletions
 
 
 class ComparisonResult:
@@ -37,12 +25,10 @@ class ComparisonResult:
 
     @property
     def similarity(self):
-        return 2 * (len(self.diff.matching_node_labels) + len(self.diff.matching_edge_labels)) / \
+        return 2 * len(self.diff.matches) / \
                (
-                       len(self.diff.matching_node_labels) + len(self.diff.deleted_node_labels) +
-                       len(self.diff.matching_node_labels) + len(self.diff.added_node_labels) +
-                       len(self.diff.matching_edge_labels) + len(self.diff.deleted_edge_labels) +
-                       len(self.diff.matching_edge_labels) + len(self.diff.added_edge_labels)
+                       len(self.diff.matches) + len(self.diff.deletions) +
+                       len(self.diff.matches) + len(self.diff.additions)
                )
 
     @property
@@ -60,12 +46,10 @@ class ComparisonResult:
     def __single_similarity(self, similarity_type: int):
         if similarity_type != 0 and similarity_type != 1:
             raise ValueError('A very specific bad thing happened')
-        return (len(self.diff.matching_node_labels) + len(self.diff.matching_edge_labels)) / \
+        return len(self.diff.matches) / \
                (
-                       len(self.diff.matching_node_labels) +
-                       len(self.diff.added_node_labels if similarity_type else self.diff.deleted_node_labels) +
-                       len(self.diff.matching_edge_labels) +
-                       len(self.diff.added_edge_labels if similarity_type else self.diff.deleted_edge_labels)
+                       len(self.diff.matches) +
+                       len(self.diff.additions if similarity_type else self.diff.deletions)
                )
 
 
@@ -74,34 +58,63 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
     graph2 = create_comparison_graph(statechart2)
 
     possible_mappings = get_all_possible_mappings(graph1, graph2)
-    best_mapping = max(possible_mappings, key=lambda mapping: score(graph1, graph2, mapping))
+    best_mappings = maxima(possible_mappings, key=lambda mapping: score(graph1, graph2, mapping))
 
-    matching_node_labels = get_matching_node_labels(graph1, graph2, best_mapping)
-    matching_edge_labels = get_matching_edge_labels(graph1, graph2, best_mapping)
+    if len(best_mappings) > 1:
+        tie_break_graph1 = create_tie_break_comparison_graph(statechart1)
+        tie_break_graph2 = create_tie_break_comparison_graph(statechart2)
+        best_mapping = maxima(best_mappings, key=lambda mapping: score(tie_break_graph1, tie_break_graph2, mapping))[0]
+    else:
+        best_mapping = best_mappings[0]
+
+    matches = get_matches(graph1, graph2, best_mapping)
     diff = Diff(
-        matching_node_labels,
-        matching_edge_labels,
-        added_node_labels={labeled_node for labeled_node in get_labeled_nodes(graph2) if labeled_node not in
-                           [match[1] for match in matching_node_labels]},
-        added_edge_labels={labeled_node for labeled_node in get_labeled_edges(graph2) if labeled_node not in
-                           [match[1] for match in matching_edge_labels]},
-        deleted_node_labels={labeled_node for labeled_node in get_labeled_nodes(graph1) if labeled_node not in
-                             [match[0] for match in matching_node_labels]},
-        deleted_edge_labels={labeled_node for labeled_node in get_labeled_edges(graph1) if labeled_node not in
-                             [match[0] for match in matching_edge_labels]}
+        matches,
+        additions={labeled_node for labeled_node in get_labeled_nodes(graph2) if labeled_node not in
+                   [match[1] for match in matches]},
+        deletions={labeled_node for labeled_node in get_labeled_nodes(graph1) if labeled_node not in
+                   [match[0] for match in matches]},
     )
     return ComparisonResult(diff)
 
 
 def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph):
+    graph1_labels = networkx.get_node_attributes(graph1, 'labels').items()
+    graph2_labels = networkx.get_node_attributes(graph2, 'labels').items()
+
+    graph1_states = get_states(graph1_labels)
+    graph2_states = get_states(graph2_labels)
+    graph1_transitions = get_transitions(graph1_labels)
+    graph2_transitions = get_transitions(graph2_labels)
+
+    all_possible_state_mappings = [{(x[0], x[1]) for x in mapping} for mapping in
+                                   get_mappings(graph1_states, graph2_states) if not mapping_has_splits(mapping)]
+    all_possible_transition_mappings = [{(x[0], x[1]) for x in mapping} for mapping in
+                                        get_mappings(graph1_transitions, graph2_transitions)
+                                        if not mapping_has_splits(mapping)]
+
+    return [set.union(state_mapping, transition_mapping) for state_mapping, transition_mapping in
+            itertools.product(all_possible_state_mappings, all_possible_transition_mappings)
+            if all(transition_mapping_element_is_valid(transition_mapping_element, state_mapping, graph1, graph2) for
+                   transition_mapping_element in transition_mapping)]
+
+
+def get_states(graph_labels):
+    return {node for node, labels in graph_labels if 'state' in labels}
+
+
+def get_transitions(graph_labels):
+    return {node for node, labels in graph_labels if 'transition' in labels}
+
+
+def get_mappings(set1: Set[Any], set2: Set[Any]):
     mappings = []
-    product = list(itertools.product(graph1.nodes, graph2.nodes))
+    product = list(itertools.product(set1, set2))
     product_list = [list(x) for x in product]
     for i in range(0, len(product) + 1):
         combinations: List[List[list]] = [list(x) for x in list(itertools.combinations(product_list, i))]
         mappings.extend(combinations)
-    all_possible_mappings_list = [mapping for mapping in mappings if not mapping_has_splits(mapping)]
-    return [{(x[0], x[1]) for x in mapping} for mapping in all_possible_mappings_list]
+    return mappings
 
 
 def mapping_has_splits(mapping: List[list]):
@@ -110,6 +123,31 @@ def mapping_has_splits(mapping: List[list]):
     return \
         any(count > 1 for count in left_mapping_nodes_counted.values()) or \
         any(count > 1 for count in right_mapping_nodes_counted.values())
+
+
+def transition_mapping_element_is_valid(transition_mapping_element, state_mapping, graph1: networkx.DiGraph,
+                                        graph2: networkx.DiGraph):
+    source_state1 = get_source_state(graph1, transition_mapping_element[0])
+    source_state2 = get_source_state(graph2, transition_mapping_element[1])
+
+    target_state1 = get_target_state(graph1, transition_mapping_element[0])
+    target_state2 = get_target_state(graph2, transition_mapping_element[1])
+
+    return (source_state1, source_state2) in state_mapping or (target_state1, target_state2) in state_mapping
+
+
+def get_source_state(graph: networkx.DiGraph, transition):
+    in_edges = list(graph.in_edges(transition))
+    if len(in_edges) != 1:
+        raise ValueError('A very specific bad thing happened')
+    return in_edges[0][0]
+
+
+def get_target_state(graph: networkx.DiGraph, transition):
+    out_edges = list(graph.out_edges(transition))
+    if len(out_edges) != 1:
+        raise ValueError('A very specific bad thing happened')
+    return out_edges[0][1]
 
 
 def create_comparison_graph(statechart: Statechart):
@@ -121,44 +159,44 @@ def create_comparison_graph(statechart: Statechart):
         if statechart.hierarchy.nodes[node]['obj'].initial:
             labels.add('initial')
         graph.add_node(node, labels=labels)
-        for transitions in statechart.transitions.values():
-            for transition in transitions:
-                graph.add_edge(transition.source_id, transition.target_id, labels={'transition'})
-                for trigger in transition.specification.triggers:
-                    graph[transition.source_id][transition.target_id]['labels'].add('trigger_' + trigger)
-                for effect in transition.specification.effects:
-                    graph[transition.source_id][transition.target_id]['labels'].add('effect_' + effect)
+    for transitions in statechart.transitions.values():
+        for transition in transitions:
+            labels = {'transition'}
+            for trigger in transition.specification.triggers:
+                labels.add('trigger_' + trigger)
+            for effect in transition.specification.effects:
+                labels.add('effect_' + effect)
+            graph.add_node(transition.transition_id, labels=labels)
+            graph.add_edge(transition.source_id, transition.transition_id)
+            graph.add_edge(transition.transition_id, transition.target_id)
+    return graph
+
+
+def create_tie_break_comparison_graph(statechart: Statechart):
+    graph = networkx.DiGraph()
+    for node in [
+        node for node in statechart.hierarchy.nodes if statechart.hierarchy.nodes[node]['ntype'] == NodeType.STATE
+    ]:
+        graph.add_node(node, labels={'state', statechart.hierarchy.nodes[node]['obj'].name})
     return graph
 
 
 def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) -> float:
     return (
-                   2 * len(get_matching_node_labels(graph1, graph2, mapping)) +
-                   2 * len(get_matching_edge_labels(graph1, graph2, mapping))
+                   2 * len(get_matches(graph1, graph2, mapping))
            ) / \
            (
                    len(get_labeled_nodes(graph1)) +
-                   len(get_labeled_nodes(graph2)) +
-                   len(get_labeled_edges(graph1)) +
-                   len(get_labeled_edges(graph2))
+                   len(get_labeled_nodes(graph2))
            )
 
 
-def get_matching_node_labels(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]):
+def get_matches(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]):
     matches = set()
     for labeled_node in get_labeled_nodes(graph1):
         match = get_matching_labeled_node(labeled_node, mapping, graph2)
         if match is not None:
             matches.add((labeled_node, match))
-    return matches
-
-
-def get_matching_edge_labels(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]):
-    matches = set()
-    for labeled_edge in get_labeled_edges(graph1):
-        match = get_matching_labeled_edge(labeled_edge, mapping, graph2)
-        if match is not None:
-            matches.add((labeled_edge, match))
     return matches
 
 
@@ -173,21 +211,6 @@ def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: Set[Tuple[
         matching_labeled_node = matching_labeled_nodes[0]
         if labeled_node[1] == matching_labeled_node[1]:
             return matching_labeled_node
-
-
-def get_matching_labeled_edge(labeled_edge: Tuple[Any, Any, str], mapping: Set[Tuple[Any, Any]],
-                              graph: networkx.DiGraph) -> Optional[Tuple[Any, Any, str]]:
-    mapped_origin_node = apply_mapping(labeled_edge[0], mapping)
-    mapped_destination_node = apply_mapping(labeled_edge[1], mapping)
-    matching_labeled_edges = [(origin_node, destination_node, label) for origin_node, destination_node, label in
-                              get_labeled_edges(graph) if origin_node == mapped_origin_node and
-                              destination_node == mapped_destination_node and label == labeled_edge[2]]
-    if len(matching_labeled_edges) > 1:
-        raise ValueError('A very specific bad thing happened')
-    if len(matching_labeled_edges) == 1:
-        matching_labeled_edge = matching_labeled_edges[0]
-        if labeled_edge[2] == matching_labeled_edge[2]:
-            return matching_labeled_edge
 
 
 def apply_mapping(node: Any, mapping: Set[Tuple[Any, Any]]):
@@ -207,10 +230,7 @@ def get_labeled_nodes(graph: networkx.DiGraph):
     }
 
 
-def get_labeled_edges(graph: networkx.DiGraph):
-    return {
-        grandchild for sublist in
-        [[(edge[0], edge[1], label) for label in labels] for (edge, labels) in
-         networkx.get_edge_attributes(graph, 'labels').items()]
-        for grandchild in sublist
-    }
+def maxima(iterable, key):
+    elements_scored = [(element, key(element)) for element in iterable]
+    max_score = max([score_ for element, score_ in elements_scored])
+    return [element for element, score_ in elements_scored if score_ == max_score]
