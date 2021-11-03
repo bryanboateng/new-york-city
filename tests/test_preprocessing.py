@@ -10,7 +10,7 @@ import networkx
 from yak_parser.Statechart import NodeType, Statechart, ScTransition
 from yak_parser.StatechartParser import StatechartParser
 
-from nyc import processor
+from nyc import preprocessor
 
 
 def node_match(node1, node2):
