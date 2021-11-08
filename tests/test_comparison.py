@@ -92,7 +92,12 @@ class TestComparator(unittest.TestCase):
                     (('_sTVBMB2oEeqjLfLN91KIGQ', 'trigger_after 1000000 ns'),
                      ('_pR-l0DpCEeyc9LxDSVYQGA', 'trigger_after 1000000 ns')),
                     (('_sTVBMB2oEeqjLfLN91KIGQ', 'effect_pau=2'), ('_pR-l0DpCEeyc9LxDSVYQGA', 'effect_pau=2')),
-                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'effect_raise vier'), ('_pR-l0DpCEeyc9LxDSVYQGA', 'effect_raise vier'))
+                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'effect_raise vier'),
+                     ('_pR-l0DpCEeyc9LxDSVYQGA', 'effect_raise vier')),
+                    (('_Oed_YB2qEeqjLfLN91KIGQ', 'transition'), ('_hDBAUDpCEeyc9LxDSVYQGA', 'transition')),
+                    (('_Oed_YB2qEeqjLfLN91KIGQ', 'trigger_Panel.btn_pressed'),
+                     ('_hDBAUDpCEeyc9LxDSVYQGA', 'trigger_Panel.btn_pressed')),
+                    (('_Oed_YB2qEeqjLfLN91KIGQ', 'effect_z=0'), ('_hDBAUDpCEeyc9LxDSVYQGA', 'effect_z=0'))
                 },
                 additions=set(),
                 deletions=set(),

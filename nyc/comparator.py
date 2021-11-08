@@ -20,16 +20,9 @@ class Diff:
 
 
 class ComparisonResult:
-    def __init__(self, diff: Diff):
+    def __init__(self, diff: Diff, similarity: float):
         self.diff = diff
-
-    @property
-    def similarity(self) -> float:
-        return 2 * len(self.diff.matches) / \
-               (
-                       len(self.diff.matches) + len(self.diff.deletions) +
-                       len(self.diff.matches) + len(self.diff.additions)
-               )
+        self.similarity = similarity
 
     @property
     def max_similarity(self) -> float:
@@ -47,9 +40,9 @@ class ComparisonResult:
         if similarity_type != 0 and similarity_type != 1:
             raise ValueError('A very specific bad thing happened')
         return len(self.diff.matches) / (
-                       len(self.diff.matches) +
-                       len(self.diff.additions if similarity_type else self.diff.deletions)
-               )
+                len(self.diff.matches) +
+                len(self.diff.additions if similarity_type else self.diff.deletions)
+        )
 
 
 def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResult:
@@ -74,7 +67,10 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
         deletions={labeled_node for labeled_node in get_labeled_nodes(graph1) if labeled_node not in
                    [match[0] for match in matches]},
     )
-    return ComparisonResult(diff)
+    return ComparisonResult(
+        diff=diff,
+        similarity=score(graph1, graph2, best_mapping)
+    )
 
 
 def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> List[Set[Tuple[Any, Any]]]:
@@ -176,13 +172,31 @@ def create_tie_break_comparison_graph(statechart: Statechart) -> networkx.DiGrap
     for node in [
         node for node in statechart.hierarchy.nodes if statechart.hierarchy.nodes[node]['ntype'] == NodeType.STATE
     ]:
-        graph.add_node(node, labels={'state', statechart.hierarchy.nodes[node]['obj'].name})
+        graph.add_node(node, labels={'state', 'name_' + statechart.hierarchy.nodes[node]['obj'].name})
     return graph
 
 
+def transition_match_score(transition_match: Tuple[Tuple[Any, str], Tuple[Any, str]], graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) -> float:
+    source_state1 = get_source_state(graph1, transition_match[0][0])
+    source_state2 = get_source_state(graph2, transition_match[1][0])
+
+    target_state1 = get_target_state(graph1, transition_match[0][0])
+    target_state2 = get_target_state(graph2, transition_match[1][0])
+
+    state_ids = [x[0] for x in networkx.get_node_attributes(graph1, 'labels').items() if 'state' in x[1]]
+    fwefwf = [x for x in mapping if x[0] in state_ids]
+
+    return len([x for x in [(source_state1, source_state2), (target_state1, target_state2)] if x in fwefwf]) / 2
+
+
 def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) -> float:
+    transition_ids = [x[0] for x in networkx.get_node_attributes(graph1, 'labels').items() if 'transition' in x[1]]
+
+    matches = get_matches(graph1, graph2, mapping)
+    transition_matches = [x for x in matches if x[0][0] in transition_ids]
+    state_matches = [x for x in matches if x not in transition_matches]
     return (
-                   2 * len(get_matches(graph1, graph2, mapping))
+                   2 * (len(state_matches) + sum([transition_match_score(transitioin_match, graph1, graph2, mapping) for transitioin_match in transition_matches]))
            ) / \
            (
                    len(get_labeled_nodes(graph1)) +

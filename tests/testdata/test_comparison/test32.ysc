@@ -8,7 +8,8 @@
       <vertices xsi:type="sgraph:State" xmi:id="_Un6xkDpCEeyc9LxDSVYQGA" name="Standard" incomingTransitions="_Un6KjTpCEeyc9LxDSVYQGA _Un7YojpCEeyc9LxDSVYQGA">
         <outgoingTransitions xmi:id="_Un7YrDpCEeyc9LxDSVYQGA" specification="Panel.btn_pressed/z=0" target="_Un7YqTpCEeyc9LxDSVYQGA"/>
       </vertices>
-      <vertices xsi:type="sgraph:State" xmi:id="_Un7YqTpCEeyc9LxDSVYQGA" name="Pause" incomingTransitions="_pR-l0DpCEeyc9LxDSVYQGA _Un7YrDpCEeyc9LxDSVYQGA">
+      <vertices xsi:type="sgraph:State" xmi:id="_Un7YqTpCEeyc9LxDSVYQGA" name="Pause" incomingTransitions="_hDBAUDpCEeyc9LxDSVYQGA _pR-l0DpCEeyc9LxDSVYQGA _Un7YrDpCEeyc9LxDSVYQGA">
+        <outgoingTransitions xmi:id="_hDBAUDpCEeyc9LxDSVYQGA" specification="Panel.btn_pressed/z=0" target="_Un7YqTpCEeyc9LxDSVYQGA"/>
         <outgoingTransitions xmi:id="_pR-l0DpCEeyc9LxDSVYQGA" specification="after 1000000 ns /pau=2; raise vier" target="_Un7YqTpCEeyc9LxDSVYQGA"/>
         <outgoingTransitions xmi:id="_Un7YojpCEeyc9LxDSVYQGA" specification="vier" target="_Un6xkDpCEeyc9LxDSVYQGA"/>
       </vertices>
@@ -113,6 +114,17 @@
       <bendpoints xsi:type="notation:RelativeBendpoints" xmi:id="_Un7_-jpCEeyc9LxDSVYQGA" points="[-26, 13, 2, -96]$[-26, 108, 2, -1]"/>
       <sourceAnchor xsi:type="notation:IdentityAnchor" xmi:id="_Un7_-zpCEeyc9LxDSVYQGA" id="(0.8686131386861314,0.7547169811320755)"/>
       <targetAnchor xsi:type="notation:IdentityAnchor" xmi:id="_Un7__DpCEeyc9LxDSVYQGA" id="(0.6331360946745562,0.018867924528301886)"/>
+    </edges>
+    <edges xmi:id="_hDF40DpCEeyc9LxDSVYQGA" type="Transition" element="_hDBAUDpCEeyc9LxDSVYQGA" source="_Un7_zDpCEeyc9LxDSVYQGA" target="_Un7_zDpCEeyc9LxDSVYQGA">
+      <children xsi:type="notation:DecorationNode" xmi:id="_hDIVEDpCEeyc9LxDSVYQGA" type="TransitionExpression">
+        <styles xsi:type="notation:ShapeStyle" xmi:id="_hDIVETpCEeyc9LxDSVYQGA"/>
+        <layoutConstraint xsi:type="notation:Location" xmi:id="_hDIVEjpCEeyc9LxDSVYQGA" x="-48" y="23"/>
+      </children>
+      <styles xsi:type="notation:ConnectorStyle" xmi:id="_hDF40TpCEeyc9LxDSVYQGA" routing="Rectilinear" lineColor="4210752"/>
+      <styles xsi:type="notation:FontStyle" xmi:id="_hDF40zpCEeyc9LxDSVYQGA" fontName="Verdana"/>
+      <bendpoints xsi:type="notation:RelativeBendpoints" xmi:id="_hDF40jpCEeyc9LxDSVYQGA" points="[34, -8, 12, -50]$[110, -8, 88, -50]$[110, 36, 88, -6]$[34, 36, 12, -6]"/>
+      <sourceAnchor xsi:type="notation:IdentityAnchor" xmi:id="_hDL_cDpCEeyc9LxDSVYQGA" id="(0.7988165680473372,0.1509433962264151)"/>
+      <targetAnchor xsi:type="notation:IdentityAnchor" xmi:id="_hDL_cTpCEeyc9LxDSVYQGA" id="(0.9289940828402367,0.9433962264150944)"/>
     </edges>
     <edges xmi:id="_pR_z8DpCEeyc9LxDSVYQGA" type="Transition" element="_pR-l0DpCEeyc9LxDSVYQGA" source="_Un7_zDpCEeyc9LxDSVYQGA" target="_Un7_zDpCEeyc9LxDSVYQGA">
       <children xsi:type="notation:DecorationNode" xmi:id="_pR_z9DpCEeyc9LxDSVYQGA" type="TransitionExpression">
