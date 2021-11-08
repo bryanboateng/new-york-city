@@ -19,20 +19,16 @@ class TestComparator(unittest.TestCase):
         self.assertEqual(
             Diff(
                 matches={
-                    (('_3ASwp5OAEeWuO-fDDpYHyA', 'state'), ('_3ASwp5OAEeWuO-fDDpYHyA', 'state')),
-                    (('_3ASwp5OAEeWuO-fDDpYHyA', 'initial'), ('_3ASwp5OAEeWuO-fDDpYHyA', 'initial')),
-                    (('_Muq1cJQtEeWuO-fDDpYHyA', 'state'), ('_Muq1cJQtEeWuO-fDDpYHyA', 'state')),
-                    (('_Er2m0JQzEeWuO-fDDpYHyA', 'transition'), ('_Er2m0JQzEeWuO-fDDpYHyA', 'transition')),
-                    (('_Er2m0JQzEeWuO-fDDpYHyA', 'trigger_operate'), ('_Er2m0JQzEeWuO-fDDpYHyA', 'trigger_operate')),
-                    (('_QwgAQJQ6EeWuO-fDDpYHyA', 'transition'), ('_QwgAQJQ6EeWuO-fDDpYHyA', 'transition')),
-                    (('_QwgAQJQ6EeWuO-fDDpYHyA', 'trigger_operate'), ('_QwgAQJQ6EeWuO-fDDpYHyA', 'trigger_operate'))
+                    ('_3ASwp5OAEeWuO-fDDpYHyA', '_3ASwp5OAEeWuO-fDDpYHyA'): {'state', 'initial'},
+                    ('_Muq1cJQtEeWuO-fDDpYHyA', '_Muq1cJQtEeWuO-fDDpYHyA'): {'state'},
+                    ('_Er2m0JQzEeWuO-fDDpYHyA', '_Er2m0JQzEeWuO-fDDpYHyA'): {'transition', 'trigger_operate'},
+                    ('_QwgAQJQ6EeWuO-fDDpYHyA', '_QwgAQJQ6EeWuO-fDDpYHyA'): {'transition', 'trigger_operate'}
                 },
                 additions={
-                    ('_ZG7dMDPkEeyXfeIrKnJaqg', 'state'),
-                    ('_b3xNIDPkEeyXfeIrKnJaqg', 'transition'),
-                    ('_b3xNIDPkEeyXfeIrKnJaqg', 'trigger_control')
+                    '_ZG7dMDPkEeyXfeIrKnJaqg': {'state'},
+                    '_b3xNIDPkEeyXfeIrKnJaqg': {'transition', 'trigger_control'}
                 },
-                deletions=set(),
+                deletions={},
             ),
             comparison_result.diff
         )
@@ -49,19 +45,15 @@ class TestComparator(unittest.TestCase):
         self.assertEqual(
             Diff(
                 matches={
-                    (('_A2j7xjglEeykxvg1BffPgg', 'state'), ('_TzjKMDglEeykxvg1BffPgg', 'state')),
-                    (('_A2j7xjglEeykxvg1BffPgg', 'initial'), ('_TzjKMDglEeykxvg1BffPgg', 'initial')),
-                    (('_A2ki2TglEeykxvg1BffPgg', 'state'), ('_TzjKOjglEeykxvg1BffPgg', 'state')),
-                    (('_A2ki0jglEeykxvg1BffPgg', 'transition'), ('_TzjKMzglEeykxvg1BffPgg', 'transition')),
-                    (('_A2ki0jglEeykxvg1BffPgg', 'trigger_myEvent'), ('_TzjKMzglEeykxvg1BffPgg', 'trigger_myEvent'))
+                    ('_A2j7xjglEeykxvg1BffPgg', '_TzjKMDglEeykxvg1BffPgg'): {'state', 'initial'},
+                    ('_A2ki2TglEeykxvg1BffPgg', '_TzjKOjglEeykxvg1BffPgg'): {'state'},
+                    ('_A2ki0jglEeykxvg1BffPgg', '_TzjKMzglEeykxvg1BffPgg'): {'transition', 'trigger_myEvent'}
                 },
-                additions=set(),
+                additions={},
                 deletions={
-                    ('_KA5kYDglEeykxvg1BffPgg', 'state'),
-                    ('_A2lJ4jglEeykxvg1BffPgg', 'transition'),
-                    ('_A2lJ4jglEeykxvg1BffPgg', 'trigger_myEvent'),
-                    ('_M1EVIDglEeykxvg1BffPgg', 'transition'),
-                    ('_M1EVIDglEeykxvg1BffPgg', 'trigger_myEvent')
+                    '_KA5kYDglEeykxvg1BffPgg': {'state'},
+                    '_A2lJ4jglEeykxvg1BffPgg': {'transition', 'trigger_myEvent'},
+                    '_M1EVIDglEeykxvg1BffPgg': {'transition', 'trigger_myEvent'}
                 }
             ),
             comparison_result.diff
@@ -79,28 +71,15 @@ class TestComparator(unittest.TestCase):
         self.assertEqual(
             Diff(
                 matches={
-                    (('_KvbzwB2oEeqjLfLN91KIGQ', 'state'), ('_Un6xkDpCEeyc9LxDSVYQGA', 'state')),
-                    (('_KvbzwB2oEeqjLfLN91KIGQ', 'initial'), ('_Un6xkDpCEeyc9LxDSVYQGA', 'initial')),
-                    (('_LI9HAB2oEeqjLfLN91KIGQ', 'state'), ('_Un7YqTpCEeyc9LxDSVYQGA', 'state')),
-                    (('_TZxGoB2oEeqjLfLN91KIGQ', 'transition'), ('_Un7YrDpCEeyc9LxDSVYQGA', 'transition')),
-                    (('_TZxGoB2oEeqjLfLN91KIGQ', 'trigger_Panel.btn_pressed'),
-                     ('_Un7YrDpCEeyc9LxDSVYQGA', 'trigger_Panel.btn_pressed')),
-                    (('_TZxGoB2oEeqjLfLN91KIGQ', 'effect_z=0'), ('_Un7YrDpCEeyc9LxDSVYQGA', 'effect_z=0')),
-                    (('_1MQwwB2oEeqjLfLN91KIGQ', 'transition'), ('_Un7YojpCEeyc9LxDSVYQGA', 'transition')),
-                    (('_1MQwwB2oEeqjLfLN91KIGQ', 'trigger_vier'), ('_Un7YojpCEeyc9LxDSVYQGA', 'trigger_vier')),
-                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'transition'), ('_pR-l0DpCEeyc9LxDSVYQGA', 'transition')),
-                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'trigger_after 1000000 ns'),
-                     ('_pR-l0DpCEeyc9LxDSVYQGA', 'trigger_after 1000000 ns')),
-                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'effect_pau=2'), ('_pR-l0DpCEeyc9LxDSVYQGA', 'effect_pau=2')),
-                    (('_sTVBMB2oEeqjLfLN91KIGQ', 'effect_raise vier'),
-                     ('_pR-l0DpCEeyc9LxDSVYQGA', 'effect_raise vier')),
-                    (('_Oed_YB2qEeqjLfLN91KIGQ', 'transition'), ('_hDBAUDpCEeyc9LxDSVYQGA', 'transition')),
-                    (('_Oed_YB2qEeqjLfLN91KIGQ', 'trigger_Panel.btn_pressed'),
-                     ('_hDBAUDpCEeyc9LxDSVYQGA', 'trigger_Panel.btn_pressed')),
-                    (('_Oed_YB2qEeqjLfLN91KIGQ', 'effect_z=0'), ('_hDBAUDpCEeyc9LxDSVYQGA', 'effect_z=0'))
+                    ('_KvbzwB2oEeqjLfLN91KIGQ', '_Un6xkDpCEeyc9LxDSVYQGA'): {'state', 'initial'},
+                    ('_LI9HAB2oEeqjLfLN91KIGQ', '_Un7YqTpCEeyc9LxDSVYQGA'): {'state'},
+                    ('_TZxGoB2oEeqjLfLN91KIGQ', '_Un7YrDpCEeyc9LxDSVYQGA'): {'transition', 'trigger_Panel.btn_pressed', 'effect_z=0'},
+                    ('_1MQwwB2oEeqjLfLN91KIGQ', '_Un7YojpCEeyc9LxDSVYQGA'): {'transition', 'trigger_vier'},
+                    ('_sTVBMB2oEeqjLfLN91KIGQ', '_pR-l0DpCEeyc9LxDSVYQGA'): {'transition', 'trigger_after 1000000 ns', 'effect_pau=2', 'effect_raise vier'},
+                    ('_Oed_YB2qEeqjLfLN91KIGQ', '_hDBAUDpCEeyc9LxDSVYQGA'): {'transition', 'trigger_Panel.btn_pressed', 'effect_z=0'},
                 },
-                additions=set(),
-                deletions=set(),
+                additions={},
+                deletions={},
             ),
             comparison_result.diff
         )
