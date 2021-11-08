@@ -10,7 +10,7 @@ import networkx
 from yak_parser.Statechart import NodeType, Statechart, ScTransition
 from yak_parser.StatechartParser import StatechartParser
 
-from nyc import bryan
+from nyc import preprocessor
 
 
 def node_match(node1, node2):
@@ -44,13 +44,13 @@ def transition_convert_ids_to_names(transition: ScTransition, statechart: Statec
     source_name = statechart.hierarchy.nodes[transition.source_id]['obj'].name
     target_name = statechart.hierarchy.nodes[transition.target_id]['obj'].name
 
-    return ScTransition(source_name, target_name, transition.specification)
+    return source_name, target_name, transition.specification
 
 
 class TestPreprocessing(unittest.TestCase):
     def test_remove_unreachable_states(self):
         statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_remove_unreachable_states.ysc')
-        bryan.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unreachable_states_expected.ysc'
         )
@@ -61,7 +61,7 @@ class TestPreprocessing(unittest.TestCase):
         statechart = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_transfer_transitions.ysc'
         )
-        bryan.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_transfer_transitions_expected.ysc'
         )
@@ -72,7 +72,7 @@ class TestPreprocessing(unittest.TestCase):
         statechart = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_orthogonal_state.ysc'
         )
-        bryan.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_nesting_orthogonal_state_expected.ysc'
         )
@@ -83,7 +83,7 @@ class TestPreprocessing(unittest.TestCase):
         statechart = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_dont_remove_main_region.ysc'
         )
-        bryan.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_remove_unnecessary_dont_remove_main_region_expected.ysc'
         )
@@ -92,7 +92,7 @@ class TestPreprocessing(unittest.TestCase):
 
     def test_normalize_time_units(self):
         statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_normalize_time_units.sct')
-        bryan.process(statechart)
+        preprocessor.process(statechart)
         statechart_expected = StatechartParser().parse(
             path='testdata/test_preprocessing/test_normalize_time_units_expected.sct'
         )
