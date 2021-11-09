@@ -70,6 +70,9 @@ def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
         labels = {'state'}
         if statechart.hierarchy.nodes[node]['obj'].initial:
             labels.add('initial')
+        # noinspection PyCallingNonCallable
+        if statechart.hierarchy.out_degree(node) > 0:
+            labels.add('composite')
         graph.add_node(node, labels=labels)
     for transitions in statechart.transitions.values():
         for transition in transitions:
