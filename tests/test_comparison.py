@@ -28,7 +28,7 @@ class TestComparator(unittest.TestCase):
                     '_ZG7dMDPkEeyXfeIrKnJaqg': {'state'},
                     '_b3xNIDPkEeyXfeIrKnJaqg': {'transition', 'trigger_control'}
                 },
-                deletions={},
+                deletions={}
             ),
             comparison_result.diff
         )
@@ -80,6 +80,32 @@ class TestComparator(unittest.TestCase):
                 },
                 additions={},
                 deletions={},
+            ),
+            comparison_result.diff
+        )
+        self.assertEqual(1, comparison_result.max_similarity)
+        self.assertEqual(1, comparison_result.single_similarity0)
+        self.assertEqual(1, comparison_result.single_similarity1)
+        self.assertEqual(1, comparison_result.similarity)
+
+    def test4(self):
+        statechart1 = StatechartParser().parse(path='testdata/test_comparison/test41.ysc')
+        statechart2 = StatechartParser().parse(path='testdata/test_comparison/test42.ysc')
+
+        comparison_result = comparator.compare(statechart1, statechart2)
+        self.assertEqual(
+            Diff(
+                matches={
+                    ('_A0h8LkDQEeyOTKblN67hww', '_5FbX5kDOEeyOTKblN67hww'): {'state', 'initial'},
+                    ('_A0ijNkDQEeyOTKblN67hww', '_5FbX8EDOEeyOTKblN67hww'): {'state', 'composite'},
+                    ('_PPvogEDQEeyOTKblN67hww', '_aO4sEEDPEeyOTKblN67hww'): {'state', 'initial'},
+                    ('_PeU3EEDQEeyOTKblN67hww', '_h3teoEDPEeyOTKblN67hww'): {'state'},
+                    ('_A0h8MUDQEeyOTKblN67hww', '_5FbX6UDOEeyOTKblN67hww'): {'transition', 'trigger_Panel.btn_pressed'},
+                    ('_A0ijOUDQEeyOTKblN67hww', '_5Fb-8UDOEeyOTKblN67hww'): {'transition', 'trigger_Panel.btn_pressed'},
+                    ('_SZfnsEDQEeyOTKblN67hww', '_kBNhwEDPEeyOTKblN67hww'): {'transition', 'trigger_vier', 'effect_pau = 4', 'effect_z = 2'},
+                },
+                additions={},
+                deletions={}
             ),
             comparison_result.diff
         )
