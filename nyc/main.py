@@ -39,7 +39,7 @@ class Main:
     def compare():
         parser = argparse.ArgumentParser(description='Record changes to the repository')
         parser.add_argument('directory', nargs='?', default=os.getcwd(),
-                            help="The directory containing the statecharts")
+                            help='The directory containing the statecharts')
         named_statecharts = Main.load_statecharts(parser.parse_args(sys.argv[2:]).directory)
         for _, statechart in named_statecharts:
             preprocessor.process(statechart)
@@ -57,15 +57,15 @@ class Main:
     @staticmethod
     def list():
         parser = argparse.ArgumentParser(description='List found cases of plagiarism')
-        parser.add_argument('result_file', help="Path of the comparison result file")
+        parser.add_argument('result_file', help='Path of the comparison result file')
         comparison_result = Main.load_comparison_result(parser.parse_args(sys.argv[2:]).result_file)
         table = [
             [
-                (Fore.GREEN + f"#{i}"),
+                (Fore.GREEN + f'#{i}'),
                 (Style.RESET_ALL + os.path.basename(path1)),
                 os.path.basename(path2),
-                "{:.2%}".format(result.similarity),
-                "{:.2%}".format(result.max_similarity)
+                '{:.2%}'.format(result.similarity),
+                '{:.2%}'.format(result.max_similarity)
             ]
             for i, (path1, path2, result) in enumerate(comparison_result, start=1)
             if result.similarity > 0.8 or result.max_similarity > 0.8
@@ -75,8 +75,8 @@ class Main:
     @staticmethod
     def matches():
         parser = argparse.ArgumentParser(description='Show matches')
-        parser.add_argument('result_file', help="Path of the comparison result file")
-        parser.add_argument('id', type=int, help="ID")
+        parser.add_argument('result_file', help='Path of the comparison result file')
+        parser.add_argument('id', type=int, help='ID')
         arguments = parser.parse_args(sys.argv[2:])
         comparison_result = Main.load_comparison_result(arguments.result_file)
         path1, path2, comparison_result_ = comparison_result[arguments.id - 1]
@@ -101,7 +101,7 @@ class Main:
         result_file = open(result_filename, 'wb')
         pickle.dump(comparison_result, result_file)
         result_file.close()
-        print(f"Result saved as {result_filename}")
+        print(f'Result saved as {result_filename}')
 
     @staticmethod
     def load_comparison_result(path):
