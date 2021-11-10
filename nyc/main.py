@@ -34,6 +34,8 @@ for named_statechart1, named_statechart2 in pairs:
     bar.next()
 bar.finish()
 
-outfile = open('comparison.result', 'wb')
+filename = 'comparison.result'
+outfile = open(filename, 'wb')
 pickle.dump(comparison_result, outfile)
 outfile.close()
+print(f"Result saved as {filename}")
