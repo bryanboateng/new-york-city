@@ -61,8 +61,8 @@ class Main:
         comparison_result = Main.load_comparison_result(parser.parse_args(sys.argv[2:]).result_file)
         table = [
             [
-                (Fore.GREEN + f'#{i}'),
-                (Style.RESET_ALL + os.path.basename(path1)),
+                (Fore.GREEN + f'#{i}' + Fore.RESET),
+                os.path.basename(path1),
                 os.path.basename(path2),
                 '{:.2%}'.format(result.similarity),
                 '{:.2%}'.format(result.max_similarity)
