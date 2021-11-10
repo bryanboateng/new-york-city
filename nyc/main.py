@@ -58,7 +58,10 @@ class Main:
     def list():
         parser = argparse.ArgumentParser(description='List found cases of plagiarism')
         parser.add_argument('result_file', help='Path of the comparison result file')
-        comparison_result = Main.load_comparison_result(parser.parse_args(sys.argv[2:]).result_file)
+        parser.add_argument('-threshold', type=float, default=0.8, help='Threshold for average similarity')
+        parser.add_argument('-max-threshold', type=float, default=0.8, help='Threshold for maximum similarity')
+        arguments = parser.parse_args(sys.argv[2:])
+        comparison_result = Main.load_comparison_result(arguments.result_file)
         table = [
             [
                 (Fore.GREEN + f'#{i}' + Fore.RESET),
@@ -68,9 +71,17 @@ class Main:
                 '{:.2%}'.format(result.max_similarity)
             ]
             for i, (path1, path2, result) in enumerate(comparison_result, start=1)
-            if result.similarity > 0.8 or result.max_similarity > 0.8
+            if result.similarity >= arguments.threshold or result.max_similarity >= arguments.max_threshold
         ]
-        print(tabulate(table, headers=['ID', 'File 1', 'File 2', 'Average similarity', 'Maximum similarity']))
+        print(
+            tabulate(table, headers=[
+                'ID',
+                'File 1',
+                'File 2',
+                f'Average similarity ({"{:.2%}".format(arguments.threshold)})',
+                f'Maximum similarity ({"{:.2%}".format(arguments.max_threshold)})'
+            ])
+        )
 
     @staticmethod
     def matches():
