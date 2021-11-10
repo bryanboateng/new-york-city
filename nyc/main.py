@@ -4,6 +4,7 @@ import os
 import pickle
 from typing import Set
 
+from progress.bar import IncrementalBar
 from yak_parser.StatechartParser import StatechartParser
 
 import comparator
@@ -24,7 +25,15 @@ filenames = get_statechart_filenames()
 named_statecharts = [(filename, StatechartParser().parse(path=filename)) for filename in filenames]
 for _, statechart in named_statecharts:
     preprocessor.process(statechart)
-comparison_result = [comparator.compare(x[1], y[1]) for x, y in itertools.combinations(named_statecharts, 2)]
+pairs = list(itertools.combinations(named_statecharts, 2))
+bar = IncrementalBar('Processing', max=len(pairs), check_tty=False, hide_cursor=False,
+                     suffix='%(percent).1f%% - %(index)d / %(max)d')
+comparison_result = []
+for named_statechart1, named_statechart2 in pairs:
+    comparison_result.append(comparator.compare(named_statechart1[1], named_statechart2[1]))
+    bar.next()
+bar.finish()
+
 outfile = open('comparison.result', 'wb')
 pickle.dump(comparison_result, outfile)
 outfile.close()
