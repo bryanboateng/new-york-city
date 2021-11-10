@@ -41,8 +41,8 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
     if len(best_mappings) > 1:
         tie_break_graph1 = create_tie_break_comparison_graph(statechart1)
         tie_break_graph2 = create_tie_break_comparison_graph(statechart2)
-        best_mapping, _ = \
-            maxima(best_mappings, key=lambda mapping: similarity(tie_break_graph1, tie_break_graph2, mapping))[0]
+        best_mapping = \
+            maxima(best_mappings, key=lambda mapping: similarity(tie_break_graph1, tie_break_graph2, mapping))[0][0]
     else:
         best_mapping = best_mappings[0]
 
