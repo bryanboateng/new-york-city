@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 
-from colorama import Fore, Style, init
+from colorama import Fore, init
 from progress.bar import IncrementalBar
 from tabulate import tabulate
 from yak_parser.StatechartParser import StatechartParser
