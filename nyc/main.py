@@ -4,6 +4,7 @@ import os
 import pickle
 import sys
 
+from colorama import Fore, Style
 from progress.bar import IncrementalBar
 from tabulate import tabulate
 from yak_parser.StatechartParser import StatechartParser
@@ -60,8 +61,8 @@ class Main:
         result_file.close()
         table = [
             [
-                f"#{i}",
-                os.path.basename(path1),
+                (Fore.GREEN + f"#{i}"),
+                (Style.RESET_ALL + os.path.basename(path1)),
                 os.path.basename(path2),
                 "{:.2%}".format(result.similarity),
                 "{:.2%}".format(result.max_similarity)
