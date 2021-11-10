@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 
-from colorama import Fore, Style
+from colorama import Fore, Style, init
 from progress.bar import IncrementalBar
 from tabulate import tabulate
 from yak_parser.StatechartParser import StatechartParser
@@ -32,6 +32,7 @@ class Main:
             print('Unrecognized command')
             parser.print_help()
             exit(1)
+        init(autoreset=True)
         getattr(self, args.command)()
 
     @staticmethod
@@ -79,6 +80,7 @@ class Main:
         arguments = parser.parse_args(sys.argv[2:])
         comparison_result = Main.load_comparison_result(arguments.result_file)
         path1, path2, comparison_result_ = comparison_result[arguments.id - 1]
+        print((Fore.GREEN + f'#{arguments.id}'))
         print(f'Average similarity: {"{:.2%}".format(comparison_result_.similarity)}')
         print(f'Maximum similarity: {"{:.2%}".format(comparison_result_.max_similarity)}')
         for (id1, id2), labels in comparison_result_.diff.matches.items():
