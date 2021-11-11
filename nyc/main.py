@@ -78,8 +78,8 @@ class Main:
                 'ID',
                 'File 1',
                 'File 2',
-                f'Average similarity ({"{:.2%}".format(arguments.threshold)})',
-                f'Maximum similarity ({"{:.2%}".format(arguments.max_threshold)})'
+                f'Average similarity (>={"{:.2%}".format(arguments.threshold)})',
+                f'Maximum similarity (>={"{:.2%}".format(arguments.max_threshold)})'
             ])
         )
 
