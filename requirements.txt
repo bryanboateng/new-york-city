@@ -1,1 +1,4 @@
 networkx
+progress
+tabulate
+colorama
