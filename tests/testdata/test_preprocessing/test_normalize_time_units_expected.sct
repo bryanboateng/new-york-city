@@ -5,14 +5,14 @@
       <vertices xsi:type="sgraph:Entry" xmi:id="_dl7_8B0JEeq-J4OPzmnFDg">
         <outgoingTransitions xmi:id="_kH7CsDNmEeyZza-XwvCVzQ" specification="" target="_D7JAQB0KEeq-J4OPzmnFDg"/>
       </vertices>
-      <vertices xsi:type="sgraph:State" xmi:id="_46q8cB0JEeq-J4OPzmnFDg" specification="entry/raise Panel.disable_a_lamp" name="window close after lock" incomingTransitions="_ZptlgB0KEeq-J4OPzmnFDg _wx1wkDNmEeyZza-XwvCVzQ">
+      <vertices xsi:type="sgraph:State" xmi:id="_46q8cB0JEeq-J4OPzmnFDg" name="window close after lock" incomingTransitions="_ZptlgB0KEeq-J4OPzmnFDg _wx1wkDNmEeyZza-XwvCVzQ">
         <outgoingTransitions xmi:id="_E3EdAB0KEeq-J4OPzmnFDg" specification="after 20000000ns/&#xD;&#xA;raise Motor.down" target="_D7JAQB0KEeq-J4OPzmnFDg"/>
-        <outgoingTransitions xmi:id="_ZptlgB0KEeq-J4OPzmnFDg" specification="Window_Sensor.&#xD;&#xA;window_open/&#xD;&#xA;raise Motor.up" target="_46q8cB0JEeq-J4OPzmnFDg"/>
+        <outgoingTransitions xmi:id="_ZptlgB0KEeq-J4OPzmnFDg" specification="Window_Sensor.&#xD;&#xA;window_open/&#xD;&#xA;raise Motor.up; raise Panel.disable_a_lamp" target="_46q8cB0JEeq-J4OPzmnFDg"/>
         <outgoingTransitions xmi:id="_zXOcUB5ZEeqryac1V9RXpQ" specification="after 3000000000ns/raise &#xD;&#xA;Error.motor_error;&#xD;&#xA;raise Motor.off" target="_FjVLkB4GEeqDIOGwFDkr3Q"/>
       </vertices>
       <vertices xsi:type="sgraph:State" xmi:id="_D7JAQB0KEeq-J4OPzmnFDg" name="lock protection" incomingTransitions="_E3EdAB0KEeq-J4OPzmnFDg _kH7CsDNmEeyZza-XwvCVzQ">
         <outgoingTransitions xmi:id="_HjrSsB4GEeqDIOGwFDkr3Q" specification="after 500ns/raise &#xD;&#xA;Error.motor_error;&#xD;&#xA;raise Motor.off" target="_FjVLkB4GEeqDIOGwFDkr3Q"/>
-        <outgoingTransitions xmi:id="_wx1wkDNmEeyZza-XwvCVzQ" specification="Key.lock" target="_46q8cB0JEeq-J4OPzmnFDg"/>
+        <outgoingTransitions xmi:id="_wx1wkDNmEeyZza-XwvCVzQ" specification="Key.lock / raise Panel.disable_a_lamp" target="_46q8cB0JEeq-J4OPzmnFDg"/>
       </vertices>
       <vertices xsi:type="sgraph:State" xmi:id="_FjVLkB4GEeqDIOGwFDkr3Q" name="wrong" incomingTransitions="_HjrSsB4GEeqDIOGwFDkr3Q _zXOcUB5ZEeqryac1V9RXpQ"/>
     </regions>
