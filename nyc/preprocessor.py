@@ -9,8 +9,27 @@ from yak_parser.Statechart import NodeType, Statechart
 def process(statechart: Statechart):
     __remove_unnecessary_nesting(statechart)
     __remove_unreachable_states(statechart)
+    __convert_entry_exit_actions(statechart)
     __remove_duplicate_transitions(statechart)
     __normalize_time_units(statechart)
+
+
+def __convert_entry_exit_actions(statechart: Statechart):
+    for node in statechart.hierarchy:
+        if statechart.hierarchy.nodes[node]['ntype'] != NodeType.STATE:
+            continue
+        for specification in statechart.hierarchy.nodes[node]['obj'].specifications:
+            if 'entry' in specification.triggers:
+                for transitions in statechart.transitions.values():
+                    for transition in transitions:
+                        if transition.target_id == node:
+                            transition.specification.effects = transition.specification.effects | specification.effects
+            elif 'exit' in specification.triggers:
+                for transition in statechart.transitions[node]:
+                    transition.specification.effects = transition.specification.effects | specification.effects
+        statechart.hierarchy.nodes[node]['obj'].specifications = \
+            [specification for specification in statechart.hierarchy.nodes[node]['obj'].specifications
+             if 'entry' not in specification.triggers and 'exit' not in specification.triggers]
 
 
 def __remove_unreachable_states(statechart: Statechart):
