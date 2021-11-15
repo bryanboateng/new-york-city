@@ -1,17 +1,24 @@
 import copy
 import re
+from typing import List
 
 from networkx import dfs_preorder_nodes, DiGraph, bfs_tree
 
 from yak_parser.Statechart import NodeType, Statechart
 
 
+class PreprocessingResult:
+    def __init__(self, unreachable_states: List[str]):
+        self.unreachable_states = unreachable_states
+
+
 def process(statechart: Statechart):
     __remove_unnecessary_nesting(statechart)
-    __remove_unreachable_states(statechart)
+    unreachable_states = __remove_unreachable_states(statechart)
     __convert_entry_exit_actions(statechart)
     __remove_duplicate_transitions(statechart)
     __normalize_time_units(statechart)
+    return PreprocessingResult(unreachable_states)
 
 
 def __convert_entry_exit_actions(statechart: Statechart):
@@ -60,6 +67,8 @@ def __remove_unreachable_states(statechart: Statechart):
     for state in unreachable_states:
         statechart.transitions.pop(state, None)
     statechart.hierarchy.remove_nodes_from(unreachable_states)
+
+    return unreachable_states
 
 
 def __get_root_initial_states(statechart: Statechart):
