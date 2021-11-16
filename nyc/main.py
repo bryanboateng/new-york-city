@@ -60,8 +60,13 @@ class Main:
         pairs = list(itertools.combinations(named_statecharts, 2))
         print(f'{len(named_statecharts)} statecharts')
         print(f'{len(pairs)} combinations')
-        processing_progress_bar = IncrementalBar('Processing', max=len(pairs), check_tty=False, hide_cursor=False,
-                                                 suffix='%(percent).1f%% - %(index)d / %(max)d')
+        processing_progress_bar = IncrementalBar(
+            'Processing',
+            max=len(pairs),
+            check_tty=False,
+            hide_cursor=False,
+            suffix='%(percent).1f%% - %(index)d / %(max)d'
+        )
         comparison_result = []
         for named_statechart1, named_statechart2 in pairs:
             comparison_result.append((named_statechart1[0], named_statechart2[0],
