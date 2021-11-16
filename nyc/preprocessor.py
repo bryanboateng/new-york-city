@@ -8,18 +8,20 @@ from yak_parser.Statechart import NodeType, Statechart, ScTransition
 
 
 class PreprocessingResult:
-    def __init__(self, unreachable_states: List[str], removed_nesting_states: List[str]):
+    def __init__(self, unreachable_states: List[str], removed_nesting_states: List[str],
+                 removed_duplicate_transitions: List[ScTransition]):
         self.unreachable_states = unreachable_states
         self.removed_nesting_states = removed_nesting_states
+        self.removed_duplicate_transitions = removed_duplicate_transitions
 
 
 def process(statechart: Statechart):
     removed_nesting_states = __remove_unnecessary_nesting(statechart)
     unreachable_states = __remove_unreachable_states(statechart)
     __convert_entry_exit_actions(statechart)
-    __remove_duplicate_transitions(statechart)
+    removed_duplicate_transitions = __remove_duplicate_transitions(statechart)
     __normalize_time_units(statechart)
-    return PreprocessingResult(unreachable_states, removed_nesting_states)
+    return PreprocessingResult(unreachable_states, removed_nesting_states, removed_duplicate_transitions)
 
 
 def __convert_entry_exit_actions(statechart: Statechart):
@@ -84,6 +86,7 @@ def __get_root_initial_states(statechart: Statechart):
 
 
 def __remove_duplicate_transitions(statechart: Statechart):
+    removed_duplicate_transitions = []
     for state, transitions in copy.deepcopy(statechart.transitions).items():
         transition_values = {__get_transition_values(transition) for transition in transitions}
         grouped_transitions = [
@@ -91,6 +94,13 @@ def __remove_duplicate_transitions(statechart: Statechart):
             for value in transition_values
         ]
         statechart.transitions[state] = [group[0] for group in grouped_transitions]
+
+        for transition_group in grouped_transitions:
+            removed = transition_group[1:]
+            for remove in removed:
+                removed_duplicate_transitions.append(remove)
+
+    return removed_duplicate_transitions
 
 
 def __remove_unnecessary_nesting(statechart: Statechart):

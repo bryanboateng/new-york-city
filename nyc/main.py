@@ -136,7 +136,8 @@ class Main:
     def print_preprocessing_results(processed_and_unprocessed_statecharts, path):
         unreachable_states = processed_and_unprocessed_statecharts[path][1].unreachable_states
         removed_nesting_states = processed_and_unprocessed_statecharts[path][1].removed_nesting_states
-        if len(unreachable_states) + len(removed_nesting_states) != 0:
+        removed_duplicate_transitions = processed_and_unprocessed_statecharts[path][1].removed_duplicate_transitions
+        if len(unreachable_states) + len(removed_nesting_states) + len(removed_duplicate_transitions) != 0:
             print('\033[3m' + f'{os.path.basename(path)}:')
 
             if len(unreachable_states) != 0:
@@ -148,6 +149,17 @@ class Main:
                 print('Removed unnecessary nesting states')
                 print([processed_and_unprocessed_statecharts[path][0].get_state_name(state)
                        for state in removed_nesting_states])
+
+            if len(removed_duplicate_transitions) != 0:
+                print('Removed unnecessary nesting states')
+                for transition in removed_duplicate_transitions:
+                    print(
+                        f'{transition.transition_id}: '
+                        f'{processed_and_unprocessed_statecharts[path][0].get_state_name(transition.source_id)} -> '
+                        f'{processed_and_unprocessed_statecharts[path][0].get_state_name(transition.target_id)} : '
+                        f'{transition.specification}'
+                    )
+
             print()
 
 
