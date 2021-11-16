@@ -1,4 +1,5 @@
 import argparse
+import copy
 import itertools
 import os
 import pickle
@@ -41,8 +42,9 @@ class Main:
         parser.add_argument('directory', nargs='?', default=os.getcwd(),
                             help='The directory containing the statecharts')
         named_statecharts = Main.load_statecharts(parser.parse_args(sys.argv[2:]).directory)
-        for _, statechart in named_statecharts:
-            preprocessor.process(statechart)
+        unprocessed_statechart_and_preprocessing_result_pairs = \
+            {path: (copy.deepcopy(statechart), preprocessor.process(statechart))
+             for path, statechart in named_statecharts}
         pairs = list(itertools.combinations(named_statecharts, 2))
         print(f'{len(named_statecharts)} statecharts')
         print(f'{len(pairs)} combinations')
@@ -54,7 +56,7 @@ class Main:
                                       comparator.compare(named_statechart1[1], named_statechart2[1])))
             progress_bar.next()
         progress_bar.finish()
-        Main.save_comparison_result(comparison_result)
+        Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
 
     @staticmethod
     def list():
@@ -63,7 +65,7 @@ class Main:
         parser.add_argument('-threshold', type=float, default=0.8, help='Threshold for average similarity')
         parser.add_argument('-max-threshold', type=float, default=0.8, help='Threshold for maximum similarity')
         arguments = parser.parse_args(sys.argv[2:])
-        comparison_result = Main.load_comparison_result(arguments.result_file)
+        _, comparison_result = Main.load_comparison_result(arguments.result_file)
         table = [
             [
                 (Fore.GREEN + f'#{i}' + Fore.RESET),
@@ -91,11 +93,19 @@ class Main:
         parser.add_argument('result_file', help='Path of the comparison result file')
         parser.add_argument('id', type=int, help='ID')
         arguments = parser.parse_args(sys.argv[2:])
-        comparison_result = Main.load_comparison_result(arguments.result_file)
+        unprocessed_statechart_and_preprocessing_result_pairs, comparison_result = \
+            Main.load_comparison_result(arguments.result_file)
         path1, path2, comparison_result_ = comparison_result[arguments.id - 1]
         print((Fore.GREEN + f'#{arguments.id}'))
         print(f'Average similarity: {"{:.2%}".format(comparison_result_.similarity)}')
         print(f'Maximum similarity: {"{:.2%}".format(comparison_result_.max_similarity)}')
+        print()
+
+        print(('\033[1m' + 'Preprocessing:'))
+        Main.print_preprocessing_results(path1, unprocessed_statechart_and_preprocessing_result_pairs[path1])
+        Main.print_preprocessing_results(path2, unprocessed_statechart_and_preprocessing_result_pairs[path2])
+
+        print(('\033[1m' + 'Matches:'))
         for (id1, id2), labels in comparison_result_.diff.matches.items():
             print(f'{id1} - {id2}: {labels}')
 
@@ -122,6 +132,34 @@ class Main:
         comparison_result = pickle.load(result_file)
         result_file.close()
         return comparison_result
+
+    @staticmethod
+    def print_preprocessing_results(path, unprocessed_statechart_and_processing_result):
+        processing_result = unprocessed_statechart_and_processing_result[1]
+        unreachable_states = processing_result.unreachable_states
+        removed_nesting_states = processing_result.removed_nesting_states
+        removed_duplicate_transitions = processing_result.removed_duplicate_transitions
+        if len(unreachable_states) + len(removed_nesting_states) + len(removed_duplicate_transitions) != 0:
+            print('\033[3m' + f'{os.path.basename(path)}:')
+
+            statechart = unprocessed_statechart_and_processing_result[0]
+            if len(unreachable_states) != 0:
+                print('Removed unreachable states')
+                print([statechart.get_state_name(state) for state in unreachable_states])
+
+            if len(removed_nesting_states) != 0:
+                print('Removed unnecessary nesting states')
+                print([statechart.get_state_name(state) for state in removed_nesting_states])
+
+            if len(removed_duplicate_transitions) != 0:
+                print('Removed unnecessary nesting states')
+                for transition in removed_duplicate_transitions:
+                    print(
+                        f'{transition.transition_id}: {statechart.get_state_name(transition.source_id)} -> '
+                        f'{statechart.get_state_name(transition.target_id)} : {transition.specification}'
+                    )
+
+            print()
 
 
 if __name__ == '__main__':
