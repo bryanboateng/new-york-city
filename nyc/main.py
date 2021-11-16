@@ -52,7 +52,7 @@ class Main:
         )
         unprocessed_statechart_and_preprocessing_result_pairs = {}
         for path, statechart in named_statecharts:
-            unprocessed_statechart_and_preprocessing_result_pairs[path]:\
+            unprocessed_statechart_and_preprocessing_result_pairs[path]: \
                 (copy.deepcopy(statechart), preprocessor.process(statechart))
             preprocessing_progress_bar.next()
         preprocessing_progress_bar.finish()
@@ -61,7 +61,7 @@ class Main:
         print(f'{len(named_statecharts)} statecharts')
         print(f'{len(pairs)} combinations')
         processing_progress_bar = IncrementalBar('Processing', max=len(pairs), check_tty=False, hide_cursor=False,
-                                      suffix='%(percent).1f%% - %(index)d / %(max)d')
+                                                 suffix='%(percent).1f%% - %(index)d / %(max)d')
         comparison_result = []
         for named_statechart1, named_statechart2 in pairs:
             comparison_result.append((named_statechart1[0], named_statechart2[0],
