@@ -8,17 +8,18 @@ from yak_parser.Statechart import NodeType, Statechart
 
 
 class PreprocessingResult:
-    def __init__(self, unreachable_states: List[str]):
+    def __init__(self, unreachable_states: List[str], removed_nesting_states: List[str]):
         self.unreachable_states = unreachable_states
+        self.removed_nesting_states = removed_nesting_states
 
 
 def process(statechart: Statechart):
-    __remove_unnecessary_nesting(statechart)
+    removed_nesting_states = __remove_unnecessary_nesting(statechart)
     unreachable_states = __remove_unreachable_states(statechart)
     __convert_entry_exit_actions(statechart)
     __remove_duplicate_transitions(statechart)
     __normalize_time_units(statechart)
-    return PreprocessingResult(unreachable_states)
+    return PreprocessingResult(unreachable_states, removed_nesting_states)
 
 
 def __convert_entry_exit_actions(statechart: Statechart):
@@ -89,6 +90,7 @@ def __remove_duplicate_transitions(statechart: Statechart):
 
 
 def __remove_unnecessary_nesting(statechart: Statechart):
+    removed_nesting_states = []
     for node in dfs_preorder_nodes(copy.deepcopy(statechart.hierarchy)):
         if statechart.hierarchy.nodes[node]['ntype'] != NodeType.STATE:
             continue
@@ -114,6 +116,8 @@ def __remove_unnecessary_nesting(statechart: Statechart):
         __transfer_initial_status(statechart, grandparent, node)
         statechart.hierarchy.add_edge(great_grandparent, node)
         statechart.hierarchy.remove_nodes_from([parent, grandparent])
+        removed_nesting_states.append(grandparent)
+    return removed_nesting_states
 
 
 def __get_parent(statechart: Statechart, node):

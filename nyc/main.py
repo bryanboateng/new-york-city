@@ -103,7 +103,6 @@ class Main:
         print(('\033[1m' + 'Preprocessing:'))
         Main.print_preprocessing_results(processed_and_unprocessed_statecharts, path1)
         Main.print_preprocessing_results(processed_and_unprocessed_statecharts, path2)
-        print()
 
         print(('\033[1m' + 'Matches:'))
         for (id1, id2), labels in comparison_result_.diff.matches.items():
@@ -136,11 +135,20 @@ class Main:
     @staticmethod
     def print_preprocessing_results(processed_and_unprocessed_statecharts, path):
         unreachable_states = processed_and_unprocessed_statecharts[path][1].unreachable_states
-        if len(unreachable_states) != 0:
-            print(f'{os.path.basename(path)}:')
-            print('Unreachable states')
-            print([processed_and_unprocessed_statecharts[path][0].get_state_name(state)
-                   for state in unreachable_states])
+        removed_nesting_states = processed_and_unprocessed_statecharts[path][1].removed_nesting_states
+        if len(unreachable_states) + len(removed_nesting_states) != 0:
+            print('\033[3m' + f'{os.path.basename(path)}:')
+
+            if len(unreachable_states) != 0:
+                print('Removed unreachable states')
+                print([processed_and_unprocessed_statecharts[path][0].get_state_name(state)
+                       for state in unreachable_states])
+
+            if len(removed_nesting_states) != 0:
+                print('Removed unnecessary nesting states')
+                print([processed_and_unprocessed_statecharts[path][0].get_state_name(state)
+                       for state in removed_nesting_states])
+            print()
 
 
 if __name__ == '__main__':
