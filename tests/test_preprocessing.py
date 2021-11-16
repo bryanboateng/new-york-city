@@ -108,6 +108,15 @@ class TestPreprocessing(unittest.TestCase):
 
         self.assertStatechartEqual(statechart_expected, statechart)
 
+    def test_remove_duplicate_transitions(self):
+        statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_remove_duplicate_transitions.ysc')
+        preprocessor.process(statechart)
+        statechart_expected = StatechartParser().parse(
+            path='testdata/test_preprocessing/test_remove_duplicate_transitions_expected.ysc'
+        )
+
+        self.assertStatechartEqual(statechart_expected, statechart)
+
     def assertStatechartEqual(self, expected: Statechart, actual: Statechart):
         self.assertEqual(expected.definition.events, actual.definition.events)
         self.assertTrue(networkx.is_isomorphic(expected.hierarchy, actual.hierarchy, node_match=node_match))

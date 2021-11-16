@@ -4,7 +4,7 @@ from typing import List
 
 from networkx import dfs_preorder_nodes, DiGraph, bfs_tree
 
-from yak_parser.Statechart import NodeType, Statechart
+from yak_parser.Statechart import NodeType, Statechart, ScTransition
 
 
 class PreprocessingResult:
@@ -85,8 +85,12 @@ def __get_root_initial_states(statechart: Statechart):
 
 def __remove_duplicate_transitions(statechart: Statechart):
     for state, transitions in copy.deepcopy(statechart.transitions).items():
-        transition_set = set(transitions)
-        statechart.transitions[state] = list(transition_set)
+        transition_values = {__get_transition_values(transition) for transition in transitions}
+        grouped_transitions = [
+            [transition for transition in transitions if __get_transition_values(transition) == value]
+            for value in transition_values
+        ]
+        statechart.transitions[state] = [group[0] for group in grouped_transitions]
 
 
 def __remove_unnecessary_nesting(statechart: Statechart):
@@ -172,3 +176,7 @@ def __convert_to_nanoseconds(amount: int, unit: str):
         return amount * 1000000000
     else:
         raise ValueError('A very specific bad thing happened')
+
+
+def __get_transition_values(transition: ScTransition):
+    return transition.source_id, transition.target_id, transition.specification
