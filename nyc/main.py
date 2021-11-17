@@ -52,7 +52,7 @@ class Main:
         )
         unprocessed_statechart_and_preprocessing_result_pairs = {}
         for path, statechart in named_statecharts:
-            unprocessed_statechart_and_preprocessing_result_pairs[path]: \
+            unprocessed_statechart_and_preprocessing_result_pairs[path] = \
                 (copy.deepcopy(statechart), preprocessor.process(statechart))
             preprocessing_progress_bar.next()
         preprocessing_progress_bar.finish()
