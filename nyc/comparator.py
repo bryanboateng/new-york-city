@@ -1,5 +1,4 @@
 import itertools
-from collections import Counter
 from typing import List, Tuple, Any, Optional, Set, Dict
 
 import networkx
@@ -96,49 +95,39 @@ def create_tie_break_comparison_graph(statechart: Statechart) -> networkx.DiGrap
     return graph
 
 
-def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> List[Set[Tuple[Any, Any]]]:
+def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> List[List[Tuple[Any, Any]]]:
     graph1_states = get_states(graph1)
     graph2_states = get_states(graph2)
     graph1_transitions = get_transitions(graph1)
     graph2_transitions = get_transitions(graph2)
 
-    all_possible_state_mappings = [mapping for mapping in get_mappings(graph1_states, graph2_states)
-                                   if not mapping_has_splits(mapping)]
-    all_possible_transition_mappings = [mapping for mapping in get_mappings(graph1_transitions, graph2_transitions)
-                                        if not mapping_has_splits(mapping)]
-
-    return [set.union(state_mapping, transition_mapping) for state_mapping, transition_mapping in
+    all_possible_state_mappings = get_mappings(graph1_states, graph2_states)
+    all_possible_transition_mappings = get_mappings(graph1_transitions, graph2_transitions)
+    return [state_mapping + transition_mapping for state_mapping, transition_mapping in
             itertools.product(all_possible_state_mappings, all_possible_transition_mappings)
             if all(transition_mapping_element_is_valid(transition_mapping_element, state_mapping, graph1, graph2) for
                    transition_mapping_element in transition_mapping)]
 
 
-def get_states(graph: networkx.DiGraph) -> Set[Any]:
+def get_states(graph: networkx.DiGraph) -> List[Any]:
     graph_labels = networkx.get_node_attributes(graph, 'labels').items()
-    return {node for node, labels in graph_labels if 'state' in labels}
+    return [node for node, labels in graph_labels if 'state' in labels]
 
 
-def get_transitions(graph: networkx.DiGraph) -> Set[Any]:
+def get_transitions(graph: networkx.DiGraph) -> List[Any]:
     graph_labels = networkx.get_node_attributes(graph, 'labels').items()
-    return {node for node, labels in graph_labels if 'transition' in labels}
+    return [node for node, labels in graph_labels if 'transition' in labels]
 
 
-def get_mappings(set1: Set[Any], set2: Set[Any]) -> List[Set[Tuple[Any, Any]]]:
-    mappings = []
-    product = list(itertools.product(set1, set2))
-    product_list = [list(x) for x in product]
-    for i in range(0, len(product) + 1):
-        combinations = [list(x) for x in list(itertools.combinations(product_list, i))]
-        mappings.extend(combinations)
-    return [{(x, y) for x, y in mapping} for mapping in mappings]
-
-
-def mapping_has_splits(mapping: Set[Tuple[Any, Any]]) -> bool:
-    left_mapping_nodes_counted = Counter([x for x, y in mapping])
-    right_mapping_nodes_counted = Counter([y for x, y in mapping])
-    return \
-        any(count > 1 for count in left_mapping_nodes_counted.values()) or \
-        any(count > 1 for count in right_mapping_nodes_counted.values())
+def get_mappings(list1: List[Any], list2: List[Any]) -> List[List[Tuple[Any, Any]]]:
+    element_count = min(len(list1), len(list2))
+    list1_permutations = list(itertools.permutations(list1, element_count))
+    list2_combinations = list(itertools.combinations(list2, element_count))
+    return [
+        list(zip(permutation, combination))
+        for permutation in list1_permutations
+        for combination in list2_combinations
+    ]
 
 
 def transition_mapping_element_is_valid(transition_mapping_element, state_mapping, graph1: networkx.DiGraph,
@@ -173,12 +162,12 @@ def maxima(iterable: List[Any], key) -> Tuple[List[Any], float]:
     return [element for element, score_ in elements_scored if score_ == max_score], max_score
 
 
-def similarity(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) -> float:
+def similarity(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: List[Tuple[Any, Any]]) -> float:
     return 2 * score(graph1, graph2, mapping) / (len(get_labeled_nodes(graph1)) + len(get_labeled_nodes(graph2)))
 
 
 def single_similarity(similarity_type: int, graph1: networkx.DiGraph, graph2: networkx.DiGraph,
-                      mapping: Set[Tuple[Any, Any]]) -> float:
+                      mapping: List[Tuple[Any, Any]]) -> float:
     if similarity_type != 0 and similarity_type != 1:
         raise ValueError('A very specific bad thing happened')
 
@@ -194,7 +183,7 @@ def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping):
 
 
 def transition_match_score(transition_match: Tuple[Tuple[Any, str], Tuple[Any, str]], graph1: networkx.DiGraph,
-                           graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) -> float:
+                           graph2: networkx.DiGraph, mapping: List[Tuple[Any, Any]]) -> float:
     source_state1 = get_source_state(graph1, transition_match[0][0])
     source_state2 = get_source_state(graph2, transition_match[1][0])
 
@@ -208,7 +197,7 @@ def transition_match_score(transition_match: Tuple[Tuple[Any, str], Tuple[Any, s
     ]) / 2
 
 
-def get_matches(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) \
+def get_matches(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: List[Tuple[Any, Any]]) \
         -> Set[Tuple[Tuple[Any, str], Tuple[Any, str]]]:
     matches = set()
     for labeled_node in get_labeled_nodes(graph1):
@@ -227,7 +216,7 @@ def get_labeled_nodes(graph: networkx.DiGraph) -> Set[Tuple[Any, str]]:
     }
 
 
-def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: Set[Tuple[Any, Any]], graph: networkx.DiGraph) \
+def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: List[Tuple[Any, Any]], graph: networkx.DiGraph) \
         -> Optional[Tuple[Any, str]]:
     mapped_node = apply_mapping(labeled_node[0], mapping)
     matching_labeled_nodes = [(node, label) for node, label in get_labeled_nodes(graph)
@@ -240,7 +229,7 @@ def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: Set[Tuple[
             return matching_labeled_node
 
 
-def apply_mapping(node: Any, mapping: Set[Tuple[Any, Any]]) -> Optional[Any]:
+def apply_mapping(node: Any, mapping: List[Tuple[Any, Any]]) -> Optional[Any]:
     relevant_mapping_elements = [(x, y) for x, y in mapping if x == node]
     if len(relevant_mapping_elements) > 1:
         raise ValueError('A very specific bad thing happened')
