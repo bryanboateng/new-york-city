@@ -99,7 +99,6 @@ def create_tie_break_comparison_graph(statechart: Statechart) -> networkx.DiGrap
     return graph
 
 
-# TODO: vielleicht iterator zurückgeben
 def get_statechart_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> List[Dict[Any, Any]]:
     state_mappings = get_mappings(get_states(graph1), get_states(graph2))
     mappings = []
