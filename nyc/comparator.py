@@ -46,7 +46,6 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
     else:
         best_mapping = best_mappings[0]
 
-    # TODO: make more efficient: get_matches should not be called again
     matches = get_matches(graph1, graph2, best_mapping)
     diff = Diff(
         group_labeled_matches(matches),
