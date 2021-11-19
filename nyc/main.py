@@ -43,24 +43,16 @@ class Main:
                             help='The directory containing the statecharts')
         named_statecharts = Main.load_statecharts(parser.parse_args(sys.argv[2:]).directory)
 
-        preprocessing_progress_bar = tqdm(desc='Preprocessing', total=len(named_statecharts), leave=False)
         unprocessed_statechart_and_preprocessing_result_pairs = {}
-        for path, statechart in named_statecharts:
+        for path, statechart in tqdm(named_statecharts, desc='Preprocessing', unit='statecharts'):
             unprocessed_statechart_and_preprocessing_result_pairs[path] = \
                 (copy.deepcopy(statechart), preprocessor.process(statechart))
-            preprocessing_progress_bar.update()
-        preprocessing_progress_bar.close()
 
         pairs = list(itertools.combinations(named_statecharts, 2))
-        print(f'{len(named_statecharts)} statecharts')
-        print(f'{len(pairs)} combinations')
-        processing_progress_bar = tqdm(desc='Processing', total=len(pairs), leave=False)
         comparison_result = []
-        for named_statechart1, named_statechart2 in pairs:
+        for named_statechart1, named_statechart2 in tqdm(pairs, desc='Processing', unit='combinations'):
             comparison_result.append((named_statechart1[0], named_statechart2[0],
                                       comparator.compare(named_statechart1[1], named_statechart2[1])))
-            processing_progress_bar.update()
-        processing_progress_bar.close()
         Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
 
     @staticmethod
