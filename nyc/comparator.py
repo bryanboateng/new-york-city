@@ -1,5 +1,5 @@
 import itertools
-from collections import Counter
+from collections import defaultdict
 from typing import List, Tuple, Any, Optional, Set, Dict
 
 import networkx
@@ -35,8 +35,8 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
     graph1 = create_comparison_graph(statechart1)
     graph2 = create_comparison_graph(statechart2)
 
-    possible_mappings = get_all_possible_mappings(graph1, graph2)
-    best_mappings, similarity_ = maxima(possible_mappings, key=lambda mapping: similarity(graph1, graph2, mapping))
+    mappings = get_statechart_mappings(graph1, graph2)
+    best_mappings, similarity_ = maxima(mappings, key=lambda mapping: similarity(graph1, graph2, mapping))
 
     if len(best_mappings) > 1:
         tie_break_graph1 = create_tie_break_comparison_graph(statechart1)
@@ -81,7 +81,9 @@ def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
                 labels.add('trigger_' + trigger)
             for effect in transition.specification.effects:
                 labels.add('effect_' + effect)
-            graph.add_node(transition.transition_id, labels=labels)
+            graph.add_node(transition.transition_id, labels=labels, source_id=transition.source_id,
+                           target_id=transition.target_id)
+
             graph.add_edge(transition.source_id, transition.transition_id)
             graph.add_edge(transition.transition_id, transition.target_id)
     return graph
@@ -96,75 +98,61 @@ def create_tie_break_comparison_graph(statechart: Statechart) -> networkx.DiGrap
     return graph
 
 
-def get_all_possible_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> List[Set[Tuple[Any, Any]]]:
-    graph1_states = get_states(graph1)
-    graph2_states = get_states(graph2)
-    graph1_transitions = get_transitions(graph1)
-    graph2_transitions = get_transitions(graph2)
-
-    all_possible_state_mappings = [mapping for mapping in get_mappings(graph1_states, graph2_states)
-                                   if not mapping_has_splits(mapping)]
-    all_possible_transition_mappings = [mapping for mapping in get_mappings(graph1_transitions, graph2_transitions)
-                                        if not mapping_has_splits(mapping)]
-
-    return [set.union(state_mapping, transition_mapping) for state_mapping, transition_mapping in
-            itertools.product(all_possible_state_mappings, all_possible_transition_mappings)
-            if all(transition_mapping_element_is_valid(transition_mapping_element, state_mapping, graph1, graph2) for
-                   transition_mapping_element in transition_mapping)]
-
-
-def get_states(graph: networkx.DiGraph) -> Set[Any]:
-    graph_labels = networkx.get_node_attributes(graph, 'labels').items()
-    return {node for node, labels in graph_labels if 'state' in labels}
-
-
-def get_transitions(graph: networkx.DiGraph) -> Set[Any]:
-    graph_labels = networkx.get_node_attributes(graph, 'labels').items()
-    return {node for node, labels in graph_labels if 'transition' in labels}
-
-
-def get_mappings(set1: Set[Any], set2: Set[Any]) -> List[Set[Tuple[Any, Any]]]:
+def get_statechart_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> List[Dict[Any, Any]]:
+    state_mappings = get_mappings(get_states(graph1), get_states(graph2))
     mappings = []
-    product = list(itertools.product(set1, set2))
-    product_list = [list(x) for x in product]
-    for i in range(0, len(product) + 1):
-        combinations = [list(x) for x in list(itertools.combinations(product_list, i))]
-        mappings.extend(combinations)
-    return [{(x, y) for x, y in mapping} for mapping in mappings]
+    for state_mapping in state_mappings:
+        grouped_transitions1 = group_transitions(graph1, get_transitions(graph1))
+        grouped_transitions2 = group_transitions(graph2, get_transitions(graph2))
+
+        grouped_transition_mapping_groups = []
+        for (source, target), transitions1 in grouped_transitions1.items():
+            if state_mapping.get(source) and state_mapping.get(target):
+                transitions2 = grouped_transitions2[state_mapping[source], state_mapping[target]]
+                transition_mappings = get_mappings(transitions1, transitions2)
+                if transition_mappings != [{}]:
+                    grouped_transition_mapping_groups.append(transition_mappings)
+        for transition_mapping_groups in list(itertools.product(*grouped_transition_mapping_groups)):
+            mapping = state_mapping.copy()
+            for transition_mapping_group in transition_mapping_groups:
+                mapping.update(transition_mapping_group)
+            mappings.append(mapping)
+    return mappings
 
 
-def mapping_has_splits(mapping: Set[Tuple[Any, Any]]) -> bool:
-    left_mapping_nodes_counted = Counter([x for x, y in mapping])
-    right_mapping_nodes_counted = Counter([y for x, y in mapping])
-    return \
-        any(count > 1 for count in left_mapping_nodes_counted.values()) or \
-        any(count > 1 for count in right_mapping_nodes_counted.values())
+def get_states(graph: networkx.DiGraph) -> List[Any]:
+    graph_labels = networkx.get_node_attributes(graph, 'labels').items()
+    return [node for node, labels in graph_labels if 'state' in labels]
 
 
-def transition_mapping_element_is_valid(transition_mapping_element, state_mapping, graph1: networkx.DiGraph,
-                                        graph2: networkx.DiGraph) -> bool:
-    source_state1 = get_source_state(graph1, transition_mapping_element[0])
-    source_state2 = get_source_state(graph2, transition_mapping_element[1])
-
-    target_state1 = get_target_state(graph1, transition_mapping_element[0])
-    target_state2 = get_target_state(graph2, transition_mapping_element[1])
-
-    return (source_state1, source_state2) in state_mapping or (target_state1, target_state2) in state_mapping
+def get_transitions(graph: networkx.DiGraph) -> List[Any]:
+    graph_labels = networkx.get_node_attributes(graph, 'labels').items()
+    return [node for node, labels in graph_labels if 'transition' in labels]
 
 
-def get_source_state(graph: networkx.DiGraph, transition) -> Any:
-    in_edges = list(graph.in_edges(transition))
-    if len(in_edges) != 1:
-        raise ValueError('A very specific bad thing happened')
-    return in_edges[0][0]
+def get_mappings(list1: List[Any], list2: List[Any]) -> List[Dict[Any, Any]]:
+    element_count = min(len(list1), len(list2))
+    list1_permutations = list(itertools.permutations(list1, element_count))
+    list2_combinations = list(itertools.combinations(list2, element_count))
+    return [dict(tuples) for tuples in [
+        list(zip(permutation, combination))
+        for permutation in list1_permutations
+        for combination in list2_combinations
+    ]]
 
 
-def get_target_state(graph: networkx.DiGraph, transition) -> Any:
-    # noinspection PyArgumentList
-    out_edges = list(graph.out_edges(transition))
-    if len(out_edges) != 1:
-        raise ValueError('A very specific bad thing happened')
-    return out_edges[0][1]
+def group_transitions(graph: networkx.DiGraph, transitions: List[Any]) -> Dict[Tuple[Any, Any], List[Any]]:
+    dictionary = defaultdict(list)
+    for transition in transitions:
+        dictionary[get_source_and_target_states(graph, transition)].append(transition)
+    return dictionary
+
+
+def get_source_and_target_states(graph, transition):
+    transition_attributes = graph.nodes[transition]
+    source = transition_attributes['source_id']
+    target = transition_attributes['target_id']
+    return source, target
 
 
 def maxima(iterable: List[Any], key) -> Tuple[List[Any], float]:
@@ -173,42 +161,20 @@ def maxima(iterable: List[Any], key) -> Tuple[List[Any], float]:
     return [element for element, score_ in elements_scored if score_ == max_score], max_score
 
 
-def similarity(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) -> float:
-    return 2 * score(graph1, graph2, mapping) / (len(get_labeled_nodes(graph1)) + len(get_labeled_nodes(graph2)))
+def similarity(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Dict[Any, Any]) -> float:
+    return 2 * len(get_matches(graph1, graph2, mapping)) / (
+            len(get_labeled_nodes(graph1)) + len(get_labeled_nodes(graph2)))
 
 
 def single_similarity(similarity_type: int, graph1: networkx.DiGraph, graph2: networkx.DiGraph,
-                      mapping: Set[Tuple[Any, Any]]) -> float:
+                      mapping: Dict[Any, Any]) -> float:
     if similarity_type != 0 and similarity_type != 1:
         raise ValueError('A very specific bad thing happened')
 
-    return score(graph1, graph2, mapping) / len(get_labeled_nodes(graph2 if similarity_type else graph1))
+    return len(get_matches(graph1, graph2, mapping)) / len(get_labeled_nodes(graph2 if similarity_type else graph1))
 
 
-def score(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping):
-    matches = get_matches(graph1, graph2, mapping)
-    transition_matches = [match for match in matches if match[0][0] in get_transitions(graph1)]
-    state_matches = [match for match in matches if match not in transition_matches]
-    return len(state_matches) + sum([transition_match_score(transition_match, graph1, graph2, mapping)
-                                     for transition_match in transition_matches])
-
-
-def transition_match_score(transition_match: Tuple[Tuple[Any, str], Tuple[Any, str]], graph1: networkx.DiGraph,
-                           graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) -> float:
-    source_state1 = get_source_state(graph1, transition_match[0][0])
-    source_state2 = get_source_state(graph2, transition_match[1][0])
-
-    target_state1 = get_target_state(graph1, transition_match[0][0])
-    target_state2 = get_target_state(graph2, transition_match[1][0])
-
-    state_mapping = [mapping_element for mapping_element in mapping if mapping_element[0] in get_states(graph1)]
-    return len([
-        mapping_element for mapping_element in [(source_state1, source_state2), (target_state1, target_state2)]
-        if mapping_element in state_mapping
-    ]) / 2
-
-
-def get_matches(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Set[Tuple[Any, Any]]) \
+def get_matches(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Dict[Any, Any]) \
         -> Set[Tuple[Tuple[Any, str], Tuple[Any, str]]]:
     matches = set()
     for labeled_node in get_labeled_nodes(graph1):
@@ -227,25 +193,16 @@ def get_labeled_nodes(graph: networkx.DiGraph) -> Set[Tuple[Any, str]]:
     }
 
 
-def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: Set[Tuple[Any, Any]], graph: networkx.DiGraph) \
+def get_matching_labeled_node(labeled_node: Tuple[Any, str], mapping: Dict[Any, Any], graph: networkx.DiGraph) \
         -> Optional[Tuple[Any, str]]:
-    mapped_node = apply_mapping(labeled_node[0], mapping)
     matching_labeled_nodes = [(node, label) for node, label in get_labeled_nodes(graph)
-                              if node == mapped_node and label == labeled_node[1]]
+                              if node == mapping.get(labeled_node[0]) and label == labeled_node[1]]
     if len(matching_labeled_nodes) > 1:
         raise ValueError('A very specific bad thing happened')
     if len(matching_labeled_nodes) == 1:
         matching_labeled_node = matching_labeled_nodes[0]
         if labeled_node[1] == matching_labeled_node[1]:
             return matching_labeled_node
-
-
-def apply_mapping(node: Any, mapping: Set[Tuple[Any, Any]]) -> Optional[Any]:
-    relevant_mapping_elements = [(x, y) for x, y in mapping if x == node]
-    if len(relevant_mapping_elements) > 1:
-        raise ValueError('A very specific bad thing happened')
-    elif len(relevant_mapping_elements) == 1:
-        return relevant_mapping_elements[0][1]
 
 
 def group_labeled_matches(matches: Set[Tuple[Tuple[Any, str], Tuple[Any, str]]]) -> Dict[Tuple[Any, Any], Set[str]]:

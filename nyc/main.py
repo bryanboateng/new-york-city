@@ -6,8 +6,8 @@ import pickle
 import sys
 
 from colorama import Fore, init
-from progress.bar import IncrementalBar
 from tabulate import tabulate
+from tqdm import tqdm
 from yak_parser.StatechartParser import StatechartParser
 
 import comparator
@@ -42,20 +42,17 @@ class Main:
         parser.add_argument('directory', nargs='?', default=os.getcwd(),
                             help='The directory containing the statecharts')
         named_statecharts = Main.load_statecharts(parser.parse_args(sys.argv[2:]).directory)
-        unprocessed_statechart_and_preprocessing_result_pairs = \
-            {path: (copy.deepcopy(statechart), preprocessor.process(statechart))
-             for path, statechart in named_statecharts}
+
+        unprocessed_statechart_and_preprocessing_result_pairs = {}
+        for path, statechart in tqdm(named_statecharts, desc='Preprocessing', unit='statecharts'):
+            unprocessed_statechart_and_preprocessing_result_pairs[path] = \
+                (copy.deepcopy(statechart), preprocessor.process(statechart))
+
         pairs = list(itertools.combinations(named_statecharts, 2))
-        print(f'{len(named_statecharts)} statecharts')
-        print(f'{len(pairs)} combinations')
-        progress_bar = IncrementalBar('Processing', max=len(pairs), check_tty=False, hide_cursor=False,
-                                      suffix='%(percent).1f%% - %(index)d / %(max)d')
         comparison_result = []
-        for named_statechart1, named_statechart2 in pairs:
+        for named_statechart1, named_statechart2 in tqdm(pairs, desc='Processing', unit='combinations'):
             comparison_result.append((named_statechart1[0], named_statechart2[0],
                                       comparator.compare(named_statechart1[1], named_statechart2[1])))
-            progress_bar.next()
-        progress_bar.finish()
         Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
 
     @staticmethod
