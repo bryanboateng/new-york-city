@@ -81,6 +81,11 @@ def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
                 labels.add('trigger_' + trigger)
             for effect in transition.specification.effects:
                 labels.add('effect_' + effect)
+            guard = transition.specification.guard
+            if guard:
+                guard_stripped = "".join(guard.split())
+                if guard_stripped:
+                    labels.add('guard_' + guard_stripped)
             graph.add_node(transition.transition_id, labels=labels, source_id=transition.source_id,
                            target_id=transition.target_id)
 
