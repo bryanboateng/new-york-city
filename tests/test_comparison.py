@@ -103,6 +103,10 @@ class TestComparator(unittest.TestCase):
                     ('_A0h8MUDQEeyOTKblN67hww', '_5FbX6UDOEeyOTKblN67hww'): {'transition', 'trigger_Panel.btn_pressed'},
                     ('_A0ijOUDQEeyOTKblN67hww', '_5Fb-8UDOEeyOTKblN67hww'): {'transition', 'trigger_Panel.btn_pressed'},
                     ('_SZfnsEDQEeyOTKblN67hww', '_kBNhwEDPEeyOTKblN67hww'): {'transition', 'trigger_vier', 'effect_pau = 4', 'effect_z = 2'},
+                    ('_A0ijNkDQEeyOTKblN67hww_PPvogEDQEeyOTKblN67hww',
+                     '_5FbX8EDOEeyOTKblN67hww_aO4sEEDPEeyOTKblN67hww'): {'hierarchy'},
+                    ('_A0ijNkDQEeyOTKblN67hww_PeU3EEDQEeyOTKblN67hww',
+                     '_5FbX8EDOEeyOTKblN67hww_h3teoEDPEeyOTKblN67hww'): {'hierarchy'},
                 },
                 additions={},
                 deletions={}
