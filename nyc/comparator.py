@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import List, Tuple, Any, Optional, Set, Dict
 
 import networkx
-from yak_parser.Statechart import Statechart, NodeType
+from yak_parser.Statechart import Statechart, NodeType, ScHistoryType
 
 
 class Diff:
@@ -64,16 +64,12 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
 
 def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
     graph = networkx.DiGraph()
-    for node in [
-        node for node in statechart.hierarchy.nodes if statechart.hierarchy.nodes[node]['ntype'] == NodeType.STATE
-    ]:
-        labels = {'state'}
-        if statechart.hierarchy.nodes[node]['obj'].initial:
-            labels.add('initial')
-        # noinspection PyCallingNonCallable
-        if statechart.hierarchy.out_degree(node) > 0:
-            labels.add('composite')
-        graph.add_node(node, labels=labels)
+    # noinspection PyArgumentList
+    for _, region in statechart.hierarchy.out_edges('root'):
+        # noinspection PyArgumentList
+        for _, state in statechart.hierarchy.out_edges(region):
+            build_hierarchy(statechart.hierarchy, state, statechart.hierarchy.nodes[region]['obj'].history, graph)
+
     for transitions in statechart.transitions.values():
         for transition in transitions:
             labels = {'transition'}
@@ -94,6 +90,37 @@ def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
     return graph
 
 
+def build_hierarchy(hierarchy: networkx.DiGraph, state: Any, history_type: ScHistoryType, labeled_graph: networkx.DiGraph):
+    labels = {'state'}
+    state_attributes = hierarchy.nodes[state]
+    if state_attributes['obj'].initial:
+        labels.add('initial')
+    if state_attributes['ntype'] == NodeType.FINAL:
+        labels.add('final')
+    if state_attributes['ntype'] == NodeType.CHOICE:
+        labels.add('choice')
+
+    if history_type == ScHistoryType.SHALLOW:
+        labels.update({'history', 'shallow_history'})
+    elif history_type == ScHistoryType.DEEP:
+        labels.update({'history', 'deep_history'})
+    # noinspection PyArgumentList
+    edges_to_regions = list(hierarchy.out_edges(state))
+    subregion_count = len(edges_to_regions)
+    if subregion_count != 0:
+        labels.add('composite' if subregion_count == 1 else 'orthogonal')
+        for _, region in edges_to_regions:
+            # noinspection PyArgumentList
+            for _, substate in hierarchy.out_edges(region):
+                edge_id = state + substate
+                labeled_graph.add_node(edge_id, labels=['hierarchy'], source_id=state, target_id=substate)
+                labeled_graph.add_edge(state, edge_id)
+                labeled_graph.add_edge(edge_id, substate)
+                build_hierarchy(hierarchy, substate, hierarchy.nodes[region]['obj'].history, labeled_graph)
+
+    labeled_graph.add_node(state, labels=labels)
+
+
 def create_tie_break_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
     graph = networkx.DiGraph()
     for node in [
@@ -107,13 +134,13 @@ def get_statechart_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) 
     state_mappings = get_mappings(get_states(graph1), get_states(graph2))
     mappings = []
     for state_mapping in state_mappings:
-        grouped_transitions1 = group_transitions(graph1, get_transitions(graph1))
-        grouped_transitions2 = group_transitions(graph2, get_transitions(graph2))
+        grouped_edges1 = group_edges(graph1, get_edges(graph1))
+        grouped_edges2 = group_edges(graph2, get_edges(graph2))
 
         grouped_transition_mapping_groups = []
-        for (source, target), transitions1 in grouped_transitions1.items():
+        for (source, target), transitions1 in grouped_edges1.items():
             if state_mapping.get(source) and state_mapping.get(target):
-                transitions2 = grouped_transitions2[state_mapping[source], state_mapping[target]]
+                transitions2 = grouped_edges2[state_mapping[source], state_mapping[target]]
                 transition_mappings = get_mappings(transitions1, transitions2)
                 if transition_mappings != [{}]:
                     grouped_transition_mapping_groups.append(transition_mappings)
@@ -130,9 +157,9 @@ def get_states(graph: networkx.DiGraph) -> List[Any]:
     return [node for node, labels in graph_labels if 'state' in labels]
 
 
-def get_transitions(graph: networkx.DiGraph) -> List[Any]:
+def get_edges(graph: networkx.DiGraph) -> List[Any]:
     graph_labels = networkx.get_node_attributes(graph, 'labels').items()
-    return [node for node, labels in graph_labels if 'transition' in labels]
+    return [node for node, labels in graph_labels if 'transition' in labels or 'hierarchy' in labels]
 
 
 def get_mappings(list1: List[Any], list2: List[Any]) -> List[Dict[Any, Any]]:
@@ -146,7 +173,7 @@ def get_mappings(list1: List[Any], list2: List[Any]) -> List[Dict[Any, Any]]:
     ]]
 
 
-def group_transitions(graph: networkx.DiGraph, transitions: List[Any]) -> Dict[Tuple[Any, Any], List[Any]]:
+def group_edges(graph: networkx.DiGraph, transitions: List[Any]) -> Dict[Tuple[Any, Any], List[Any]]:
     dictionary = defaultdict(list)
     for transition in transitions:
         dictionary[get_source_and_target_states(graph, transition)].append(transition)
