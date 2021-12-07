@@ -50,7 +50,7 @@ class Main:
 
         pairs = list(itertools.combinations(named_statecharts, 2))
         comparison_result = []
-        for named_statechart1, named_statechart2 in tqdm(pairs, desc='Processing', unit='combinations'):
+        for named_statechart1, named_statechart2 in tqdm(pairs, desc='Processing', unit='pairs'):
             comparison_result.append((named_statechart1[0], named_statechart2[0],
                                       comparator.compare(named_statechart1[1], named_statechart2[1])))
         Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
