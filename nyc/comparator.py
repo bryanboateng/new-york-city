@@ -164,13 +164,13 @@ def get_edges(graph: networkx.DiGraph) -> List[Any]:
 
 def get_mappings(list1: List[Any], list2: List[Any]) -> List[Dict[Any, Any]]:
     element_count = min(len(list1), len(list2))
-    list1_permutations = list(itertools.permutations(list1, element_count))
+    list1_permutations = itertools.permutations(list1, element_count)
     list2_combinations = list(itertools.combinations(list2, element_count))
-    return [dict(tuples) for tuples in [
-        list(zip(permutation, combination))
+    return [
+        dict(zip(permutation, combination))
         for permutation in list1_permutations
         for combination in list2_combinations
-    ]]
+    ]
 
 
 def group_edges(graph: networkx.DiGraph, transitions: List[Any]) -> Dict[Tuple[Any, Any], List[Any]]:
