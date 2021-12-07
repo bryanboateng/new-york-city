@@ -1,6 +1,6 @@
 import itertools
 from collections import defaultdict
-from typing import List, Tuple, Any, Optional, Set, Dict
+from typing import List, Tuple, Any, Optional, Set, Dict, Iterator
 
 import networkx
 from yak_parser.Statechart import Statechart, NodeType, ScHistoryType
@@ -31,20 +31,110 @@ class ComparisonResult:
         return max(self.single_similarity0, self.single_similarity1)
 
 
+def get_best_mapping_greedy(graph1: networkx.DiGraph, graph2: networkx.DiGraph):
+    mapping = {}
+    graph1_states = get_states(graph1)
+    graph2_states = get_states(graph2)
+    while True:
+        unmapped_graph1_states = [state for state in graph1_states if state not in mapping.keys()]
+        unmapped_graph2_states = [state for state in graph2_states if state not in mapping.values()]
+        if min(len(unmapped_graph1_states), len(unmapped_graph2_states)) == 0:
+            break
+        candidates = maxima(
+            itertools.product(unmapped_graph1_states, unmapped_graph2_states),
+            key=lambda mapping_element: len(get_matches(graph1, graph2, expand_mapping(mapping, mapping_element)))
+        )[0]
+        if len(candidates) > 1:
+            candidates = maxima(candidates, key=lambda mapping_element: look_ahead(graph1, graph2, mapping_element))[0]
+        best_mapping_element = candidates[0]
+        mapping[best_mapping_element[0]] = best_mapping_element[1]
+
+        grouped_mapable_adjacent_edges1 = \
+            get_grouped_mapable_adjacent_edges(best_mapping_element[0], graph1, mapping.keys())
+        grouped_mapable_adjacent_edges2 = \
+            get_grouped_mapable_adjacent_edges(best_mapping_element[1], graph2, mapping.values())
+
+        for source, target in grouped_mapable_adjacent_edges1.copy():
+            grouped_mapable_adjacent_edges1[(mapping[source], mapping[target])] = \
+                grouped_mapable_adjacent_edges1.pop((source, target))
+
+        for edges1, edges2 in [(grouped_mapable_adjacent_edges1[group_key], grouped_mapable_adjacent_edges2[group_key])
+                               for group_key in grouped_mapable_adjacent_edges1]:
+            edge_mappings = get_mappings(edges1, edges2)
+            if len(edge_mappings) == 1:
+                mapping.update(edge_mappings[0])
+            else:
+                best_edge_mappings, _ = \
+                    maxima(edge_mappings, key=lambda edge_mapping: len(get_matches(graph1, graph2, edge_mapping)))
+                mapping.update(best_edge_mappings[0])
+    return mapping, len(get_matches(graph1, graph2, mapping))
+
+
+def get_grouped_mapable_adjacent_edges(best_mapping_element, graph, mapping):
+    predecessors = [x for x in graph.predecessors(best_mapping_element) if graph.nodes[x]['source_id'] in mapping]
+    predecessors_grouped = group_edges(graph, predecessors)
+    successors = [x for x in graph.successors(best_mapping_element) if graph.nodes[x]['target_id'] in mapping]
+    successors_grouped = group_edges(graph, successors)
+    return {**predecessors_grouped, **successors_grouped}
+
+
+def look_ahead(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping_element: Tuple[Any, Any]):
+    edges1 = get_edges(graph1)
+    labeled_nodes1 = get_labeled_nodes(graph1)
+    edges2 = get_edges(graph2)
+    labeled_nodes2 = get_labeled_nodes(graph2)
+
+    outgoing_labeled_transitions1 = \
+        get_labeled_edges(graph1, edges1, labeled_nodes1, mapping_element[0], True)
+    outgoing_labeled_transitions2 = \
+        get_labeled_edges(graph2, edges2, labeled_nodes2, mapping_element[1], True)
+    a = get_potential_new_labeled_nodes(outgoing_labeled_transitions1, outgoing_labeled_transitions2)
+    b = get_potential_new_labeled_nodes(outgoing_labeled_transitions2, outgoing_labeled_transitions1)
+
+    incoming_labeled_transitions1 = \
+        get_labeled_edges(graph1, edges1, labeled_nodes1, mapping_element[0], False)
+    incoming_labeled_transitions2 = \
+        get_labeled_edges(graph2, edges2, labeled_nodes2, mapping_element[1], False)
+    c = get_potential_new_labeled_nodes(incoming_labeled_transitions1, incoming_labeled_transitions2)
+    d = get_potential_new_labeled_nodes(incoming_labeled_transitions2, incoming_labeled_transitions1)
+
+    return len(a + b + c + d)
+
+
+def get_labeled_edges(graph: networkx.DiGraph, edges: List[Any], labeled_nodes: Set[Tuple[Any, str]],
+                      state: Any, use_source: bool):
+    relevant_edges = [edge for edge in edges if graph.nodes[edge]['source_id' if use_source else 'target_id'] == state]
+    return [(node, label) for node, label in labeled_nodes if node in relevant_edges]
+
+
+def get_potential_new_labeled_nodes(labeled_nodes1: List[Tuple[Any, str]], labeled_nodes2: List[Tuple[Any, str]]):
+    return [(node, label) for node, label in labeled_nodes1 if label in [label for node, label in labeled_nodes2]]
+
+
+def expand_mapping(mapping: Dict[Any, Any], mapping_element: Tuple[Any, Any]):
+    copy = mapping.copy()
+    copy[mapping_element[0]] = mapping_element[1]
+    return copy
+
+
 def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResult:
     graph1 = create_comparison_graph(statechart1)
     graph2 = create_comparison_graph(statechart2)
 
-    mappings = get_statechart_mappings(graph1, graph2)
-    best_mappings, similarity_ = maxima(mappings, key=lambda mapping: similarity(graph1, graph2, mapping))
-
-    if len(best_mappings) > 1:
-        tie_break_graph1 = create_tie_break_comparison_graph(statechart1)
-        tie_break_graph2 = create_tie_break_comparison_graph(statechart2)
-        best_mapping = \
-            maxima(best_mappings, key=lambda mapping: similarity(tie_break_graph1, tie_break_graph2, mapping))[0][0]
+    if min(graph1.number_of_nodes(), graph2.number_of_nodes()) > 10:
+        best_mapping, score = get_best_mapping_greedy(graph1, graph2)
     else:
-        best_mapping = best_mappings[0]
+        mappings = get_statechart_mappings(graph1, graph2)
+        best_mappings, score = maxima(mappings, key=lambda mapping: len(get_matches(graph1, graph2, mapping)))
+
+        if len(best_mappings) > 1:
+            tie_break_graph1 = create_tie_break_comparison_graph(statechart1)
+            tie_break_graph2 = create_tie_break_comparison_graph(statechart2)
+            best_mapping = \
+                maxima(best_mappings,
+                       key=lambda mapping: len(get_matches(tie_break_graph1, tie_break_graph2, mapping)))[0][0]
+        else:
+            best_mapping = best_mappings[0]
 
     matches = get_matches(graph1, graph2, best_mapping)
     diff = Diff(
@@ -56,9 +146,9 @@ def compare(statechart1: Statechart, statechart2: Statechart) -> ComparisonResul
     )
     return ComparisonResult(
         diff=diff,
-        similarity_=similarity_,
-        single_similarity0=single_similarity(0, graph1, graph2, best_mapping),
-        single_similarity1=single_similarity(1, graph1, graph2, best_mapping)
+        similarity_=2 * score / (len(get_labeled_nodes(graph1)) + len(get_labeled_nodes(graph2))),
+        single_similarity0=score / len(get_labeled_nodes(graph1)),
+        single_similarity1=score / len(get_labeled_nodes(graph2))
     )
 
 
@@ -90,7 +180,8 @@ def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
     return graph
 
 
-def build_hierarchy(hierarchy: networkx.DiGraph, state: Any, history_type: ScHistoryType, labeled_graph: networkx.DiGraph):
+def build_hierarchy(hierarchy: networkx.DiGraph, state: Any, history_type: ScHistoryType,
+                    labeled_graph: networkx.DiGraph):
     labels = {'state'}
     state_attributes = hierarchy.nodes[state]
     if state_attributes['obj'].initial:
@@ -187,23 +278,12 @@ def get_source_and_target_states(graph, transition):
     return source, target
 
 
-def maxima(iterable: List[Any], key) -> Tuple[List[Any], float]:
-    elements_scored = [(element, key(element)) for element in iterable]
-    max_score = max([score_ for element, score_ in elements_scored])
-    return [element for element, score_ in elements_scored if score_ == max_score], max_score
-
-
-def similarity(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Dict[Any, Any]) -> float:
-    return 2 * len(get_matches(graph1, graph2, mapping)) / (
-            len(get_labeled_nodes(graph1)) + len(get_labeled_nodes(graph2)))
-
-
-def single_similarity(similarity_type: int, graph1: networkx.DiGraph, graph2: networkx.DiGraph,
-                      mapping: Dict[Any, Any]) -> float:
-    if similarity_type != 0 and similarity_type != 1:
-        raise ValueError('A very specific bad thing happened')
-
-    return len(get_matches(graph1, graph2, mapping)) / len(get_labeled_nodes(graph2 if similarity_type else graph1))
+def maxima(iterable: Iterator[Any], key) -> Tuple[List[Any], float]:
+    elements_scored = defaultdict(list)
+    for element in iterable:
+        elements_scored[key(element)].append(element)
+    max_score = max(elements_scored)
+    return elements_scored[max_score], max_score
 
 
 def get_matches(graph1: networkx.DiGraph, graph2: networkx.DiGraph, mapping: Dict[Any, Any]) \
