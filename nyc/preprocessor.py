@@ -52,7 +52,8 @@ def __remove_unreachable_states(statechart: Statechart):
         grandchildren_nested = [statechart.hierarchy.successors(successor) for successor in successors]
         grandchildren = [grandchild for sublist in grandchildren_nested for grandchild in sublist]
         for state in grandchildren:
-            if statechart.hierarchy.nodes[state]['obj'].initial:
+            if statechart.hierarchy.nodes[state]['ntype'] == NodeType.STATE and \
+                    statechart.hierarchy.nodes[state]['obj'].initial:
                 graph.add_edge(node, state)
 
     for transitions in statechart.transitions.values():
@@ -80,7 +81,8 @@ def __get_root_initial_states(statechart: Statechart):
     root_grandchildren = [grandchild for sublist in root_grandchildren_nested for grandchild in sublist]
     root_initial_states = []
     for state in root_grandchildren:
-        if statechart.hierarchy.nodes[state]['obj'].initial:
+        if statechart.hierarchy.nodes[state]['ntype'] == NodeType.STATE and \
+                statechart.hierarchy.nodes[state]['obj'].initial:
             root_initial_states.append(state)
     return root_initial_states
 

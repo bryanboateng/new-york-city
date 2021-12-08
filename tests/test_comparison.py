@@ -5,8 +5,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
 
 import unittest
 
-from nyc import comparator
-from nyc.comparator import Diff
+from nyc.comparator import Diff, Comparator
 from yak_parser.StatechartParser import StatechartParser
 
 
@@ -15,7 +14,7 @@ class TestComparator(unittest.TestCase):
         statechart1 = StatechartParser().parse(path='testdata/test_comparison/test11.ysc')
         statechart2 = StatechartParser().parse(path='testdata/test_comparison/test12.ysc')
 
-        comparison_result = comparator.compare(statechart1, statechart2)
+        comparison_result = Comparator(statechart1, statechart2).compare()
         self.assertEqual(
             Diff(
                 matches={
@@ -41,7 +40,7 @@ class TestComparator(unittest.TestCase):
         statechart1 = StatechartParser().parse(path='testdata/test_comparison/test21.ysc')
         statechart2 = StatechartParser().parse(path='testdata/test_comparison/test22.ysc')
 
-        comparison_result = comparator.compare(statechart1, statechart2)
+        comparison_result = Comparator(statechart1, statechart2).compare()
         self.assertEqual(
             Diff(
                 matches={
@@ -67,7 +66,7 @@ class TestComparator(unittest.TestCase):
         statechart1 = StatechartParser().parse(path='testdata/test_comparison/test31.ysc')
         statechart2 = StatechartParser().parse(path='testdata/test_comparison/test32.ysc')
 
-        comparison_result = comparator.compare(statechart1, statechart2)
+        comparison_result = Comparator(statechart1, statechart2).compare()
         self.assertEqual(
             Diff(
                 matches={
@@ -92,7 +91,7 @@ class TestComparator(unittest.TestCase):
         statechart1 = StatechartParser().parse(path='testdata/test_comparison/test41.ysc')
         statechart2 = StatechartParser().parse(path='testdata/test_comparison/test42.ysc')
 
-        comparison_result = comparator.compare(statechart1, statechart2)
+        comparison_result = Comparator(statechart1, statechart2).compare()
         self.assertEqual(
             Diff(
                 matches={

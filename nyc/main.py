@@ -10,7 +10,7 @@ from tabulate import tabulate
 from tqdm import tqdm
 from yak_parser.StatechartParser import StatechartParser
 
-import comparator
+from nyc.comparator import Comparator
 import preprocessor
 
 
@@ -50,9 +50,9 @@ class Main:
 
         pairs = list(itertools.combinations(named_statecharts, 2))
         comparison_result = []
-        for named_statechart1, named_statechart2 in tqdm(pairs, desc='Processing', unit='combinations'):
-            comparison_result.append((named_statechart1[0], named_statechart2[0],
-                                      comparator.compare(named_statechart1[1], named_statechart2[1])))
+        for named_statechart1, named_statechart2 in tqdm(pairs, desc='Processing', unit='pairs'):
+            comparator = Comparator(named_statechart1[1], named_statechart2[1])
+            comparison_result.append((named_statechart1[0], named_statechart2[0], comparator.compare()))
         Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
 
     @staticmethod
@@ -112,8 +112,14 @@ class Main:
         for root, _, files in os.walk(directory):
             [statechart_paths.add(os.path.join(root, file)) for file in files if
              os.path.splitext(file)[1] in ['.ysc', '.sct']]
-        return [(statechart_path, StatechartParser().parse(path=statechart_path))
-                for statechart_path in statechart_paths]
+        statecharts_with_path = []
+        for statechart_path in statechart_paths:
+            try:
+                statecharts_with_path.append((statechart_path, StatechartParser().parse(path=statechart_path)))
+            except ValueError as err:
+                print(f'{statechart_path}: {err}')
+                raise
+        return statecharts_with_path
 
     @staticmethod
     def save_comparison_result(comparison_result):
