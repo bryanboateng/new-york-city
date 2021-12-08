@@ -68,8 +68,8 @@ class Main:
                 (Fore.GREEN + f'#{i}' + Fore.RESET),
                 os.path.basename(path1),
                 os.path.basename(path2),
-                '{:.2%}'.format(result.similarity),
-                '{:.2%}'.format(result.max_similarity)
+                f'{result.similarity:.2%}{"*" if result.is_greedy else ""}',
+                f'{result.max_similarity:.2%}{"*" if result.is_greedy else ""}'
             ]
             for i, (path1, path2, result) in enumerate(comparison_result, start=1)
             if result.similarity >= arguments.threshold or result.max_similarity >= arguments.max_threshold
@@ -83,6 +83,7 @@ class Main:
                 f'Maximum similarity (>={"{:.2%}".format(arguments.max_threshold)})'
             ])
         )
+        print('*: Greedy algorithm used')
 
     @staticmethod
     def matches():
