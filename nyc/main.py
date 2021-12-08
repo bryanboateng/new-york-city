@@ -53,6 +53,7 @@ class Main:
         pairs = list(itertools.combinations(named_statecharts, 2))
         comparison_result = process_map(Main.compare_pair, pairs, desc='Processing', unit='pairs',
                                         max_workers=cpu_count() - 1)
+        comparison_result.sort(key=lambda result: result[2].similarity * result[2].max_similarity, reverse=True)
         Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
 
     @staticmethod
