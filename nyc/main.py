@@ -4,10 +4,12 @@ import itertools
 import os
 import pickle
 import sys
+from multiprocessing import cpu_count
 
 from colorama import Fore, init
 from tabulate import tabulate
 from tqdm import tqdm
+from tqdm.contrib.concurrent import process_map
 from yak_parser.StatechartParser import StatechartParser
 
 from nyc.comparator import Comparator
@@ -49,11 +51,14 @@ class Main:
                 (copy.deepcopy(statechart), preprocessor.process(statechart))
 
         pairs = list(itertools.combinations(named_statecharts, 2))
-        comparison_result = []
-        for named_statechart1, named_statechart2 in tqdm(pairs, desc='Processing', unit='pairs'):
-            comparator = Comparator(named_statechart1[1], named_statechart2[1])
-            comparison_result.append((named_statechart1[0], named_statechart2[0], comparator.compare()))
+        comparison_result = process_map(Main.compare_pair, pairs, desc='Processing', unit='pairs',
+                                        max_workers=cpu_count() - 1)
         Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
+
+    @staticmethod
+    def compare_pair(named_statechart_pair):
+        comparator = Comparator(named_statechart_pair[0][1], named_statechart_pair[1][1])
+        return named_statechart_pair[0][0], named_statechart_pair[1][0], comparator.compare()
 
     @staticmethod
     def list():
