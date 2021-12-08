@@ -112,8 +112,14 @@ class Main:
         for root, _, files in os.walk(directory):
             [statechart_paths.add(os.path.join(root, file)) for file in files if
              os.path.splitext(file)[1] in ['.ysc', '.sct']]
-        return [(statechart_path, StatechartParser().parse(path=statechart_path))
-                for statechart_path in statechart_paths]
+        statecharts_with_path = []
+        for statechart_path in statechart_paths:
+            try:
+                statecharts_with_path.append((statechart_path, StatechartParser().parse(path=statechart_path)))
+            except ValueError as err:
+                print(f'{statechart_path}: {err}')
+                raise
+        return statecharts_with_path
 
     @staticmethod
     def save_comparison_result(comparison_result):
