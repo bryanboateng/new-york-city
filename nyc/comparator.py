@@ -20,11 +20,13 @@ class Diff:
 
 
 class ComparisonResult:
-    def __init__(self, diff: Diff, similarity_: float, single_similarity0: float, single_similarity1: float):
+    def __init__(self, diff: Diff, similarity_: float, single_similarity0: float, single_similarity1: float,
+                 is_greedy: bool):
         self.diff = diff
         self.similarity = similarity_
         self.single_similarity0 = single_similarity0
         self.single_similarity1 = single_similarity1
+        self.is_greedy = is_greedy
 
     @property
     def max_similarity(self) -> float:
@@ -43,8 +45,10 @@ class Comparator:
 
     def compare(self) -> ComparisonResult:
         if min(self.graph1.number_of_nodes(), self.graph2.number_of_nodes()) > 10:
+            is_greedy = True
             best_mapping, score = self.get_best_mapping_greedy(self.graph1, self.graph2)
         else:
+            is_greedy = False
             mappings = get_statechart_mappings(self.graph1, self.graph2)
             best_mappings, score = maxima(mappings, key=lambda mapping: len(self.get_matches(mapping)))
 
@@ -69,7 +73,8 @@ class Comparator:
             diff=diff,
             similarity_=2 * score / (len(self.labeled_nodes1) + len(self.labeled_nodes2)),
             single_similarity0=score / len(self.labeled_nodes1),
-            single_similarity1=score / len(self.labeled_nodes2)
+            single_similarity1=score / len(self.labeled_nodes2),
+            is_greedy=is_greedy
         )
 
     def get_best_mapping_greedy(self, graph1: networkx.DiGraph, graph2: networkx.DiGraph):
