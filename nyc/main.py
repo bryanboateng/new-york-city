@@ -70,7 +70,7 @@ class Main:
         _, comparison_result = Main.load_comparison_result(arguments.result_file)
         table = [
             [
-                (Fore.GREEN + f'#{i}' + Fore.RESET),
+                (Fore.GREEN + str(i) + Fore.RESET),
                 os.path.basename(path1),
                 os.path.basename(path2),
                 f'{result.similarity:.2%}{"*" if result.is_greedy else ""}',
