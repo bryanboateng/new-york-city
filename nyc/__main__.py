@@ -13,7 +13,7 @@ from tqdm.contrib.concurrent import process_map
 from yak_parser.StatechartParser import StatechartParser
 
 from nyc.comparator import Comparator
-import preprocessor
+from nyc import preprocessor
 
 
 class Main:
