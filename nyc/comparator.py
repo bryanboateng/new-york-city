@@ -44,11 +44,10 @@ class Comparator:
         self.mapping_to_matches_cache = {}
 
     def compare(self) -> ComparisonResult:
-        if min(self.graph1.number_of_nodes(), self.graph2.number_of_nodes()) > 10:
-            is_greedy = True
+        is_greedy = min(self.graph1.number_of_nodes(), self.graph2.number_of_nodes()) > 10
+        if is_greedy:
             best_mapping, score = self.get_best_mapping_greedy(self.graph1, self.graph2)
         else:
-            is_greedy = False
             mappings = get_statechart_mappings(self.graph1, self.graph2)
             best_mappings, score = maxima(mappings, key=lambda mapping: len(self.get_matches(mapping)))
 
