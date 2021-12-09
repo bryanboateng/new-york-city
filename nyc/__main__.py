@@ -12,8 +12,8 @@ from tqdm import tqdm
 from tqdm.contrib.concurrent import process_map
 from yak_parser.StatechartParser import StatechartParser
 
-from nyc.comparator import Comparator
 from nyc import preprocessor
+from nyc.compare_pair import compare_pair
 
 
 class Main:
@@ -51,15 +51,10 @@ class Main:
                 (copy.deepcopy(statechart), preprocessor.process(statechart))
 
         pairs = list(itertools.combinations(named_statecharts, 2))
-        comparison_result = process_map(Main.compare_pair, pairs, desc='Processing', unit='pairs',
+        comparison_result = process_map(compare_pair, pairs, desc='Processing', unit='pairs',
                                         max_workers=cpu_count() - 1)
         comparison_result.sort(key=lambda result: result[2].similarity * result[2].max_similarity, reverse=True)
         Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
-
-    @staticmethod
-    def compare_pair(named_statechart_pair):
-        comparator = Comparator(named_statechart_pair[0][1], named_statechart_pair[1][1])
-        return named_statechart_pair[0][0], named_statechart_pair[1][0], comparator.compare()
 
     @staticmethod
     def list():
