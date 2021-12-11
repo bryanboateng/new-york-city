@@ -24,7 +24,7 @@ class TestGetStatechartMappings(unittest.TestCase):
             {'A': '1', 'B': '2', 'r': 'x', 'q': 'y'},
             {'B': '1', 'A': '2'}
         ]
-        self.assertEqual(expected, get_statechart_mappings(graph1, graph2))
+        self.assertCountEqual(expected, get_statechart_mappings(graph1, graph2))
 
     def test2(self):
         statechart1 = StatechartParser().parse(
@@ -50,7 +50,7 @@ class TestGetStatechartMappings(unittest.TestCase):
             {'F': 'A', 'E': 'B', 'D': 'C'}
         ]
 
-        self.assertEqual(expected, get_statechart_mappings(graph1, graph2))
+        self.assertCountEqual(expected, get_statechart_mappings(graph1, graph2))
 
     def test3(self):
         statechart1 = StatechartParser().parse(
@@ -71,7 +71,7 @@ class TestGetStatechartMappings(unittest.TestCase):
             {'C': 'D', 'B': 'E'}
         ]
 
-        self.assertEqual(expected, get_statechart_mappings(graph1, graph2))
+        self.assertCountEqual(expected, get_statechart_mappings(graph1, graph2))
 
 
 if __name__ == '__main__':
