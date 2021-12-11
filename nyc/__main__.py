@@ -40,7 +40,7 @@ class Main:
 
     @staticmethod
     def compare():
-        parser = argparse.ArgumentParser(description='Record changes to the repository')
+        parser = argparse.ArgumentParser(description='Compare statecharts')
         parser.add_argument('directory', nargs='?', default=os.getcwd(),
                             help='The directory containing the statecharts')
         named_statecharts = Main.load_statecharts(parser.parse_args(sys.argv[2:]).directory)
