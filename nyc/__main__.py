@@ -119,8 +119,7 @@ class Main:
             try:
                 statecharts_with_path.append((statechart_path, StatechartParser().parse(path=statechart_path)))
             except ValueError as err:
-                print(f'{statechart_path}: {err}')
-                raise
+                print(f'Skipped {statechart_path}: {err}')
         return statecharts_with_path
 
     @staticmethod
