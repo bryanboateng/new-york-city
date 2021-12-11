@@ -44,15 +44,15 @@ class TestComparator(unittest.TestCase):
         self.assertEqual(
             Diff(
                 matches={
-                    ('_A2j7xjglEeykxvg1BffPgg', '_TzjKMDglEeykxvg1BffPgg'): {'state', 'initial'},
-                    ('_A2ki2TglEeykxvg1BffPgg', '_TzjKOjglEeykxvg1BffPgg'): {'state'},
-                    ('_A2ki0jglEeykxvg1BffPgg', '_TzjKMzglEeykxvg1BffPgg'): {'transition', 'trigger_myEvent'}
+                    ('A', '1'): {'state', 'initial'},
+                    ('B', '2'): {'state'},
+                    ('D', '3'): {'transition', 'trigger_myEvent'}
                 },
                 additions={},
                 deletions={
-                    '_KA5kYDglEeykxvg1BffPgg': {'state'},
-                    '_A2lJ4jglEeykxvg1BffPgg': {'transition', 'trigger_myEvent'},
-                    '_M1EVIDglEeykxvg1BffPgg': {'transition', 'trigger_myEvent'}
+                    'C': {'state'},
+                    'E': {'transition', 'trigger_myEvent'},
+                    'F': {'transition', 'trigger_myEvent'}
                 }
             ),
             comparison_result.diff

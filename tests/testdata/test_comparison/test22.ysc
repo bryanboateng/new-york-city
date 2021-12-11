@@ -3,12 +3,12 @@
   <sgraph:Statechart xmi:id="_Tzh8EDglEeykxvg1BffPgg" specification="// Use the event driven execution model.&#xA;// Switch to cycle based behavior&#xA;// by specifying '@CycleBased(200)'.&#xA;@EventDriven&#xA;&#xA;// Use @SuperSteps(yes) to enable&#xA;// super step semantics.&#xA;@SuperSteps(no)&#xA;&#xA;interface:&#xA;&#x9;// Define events and variables here. &#xA;&#x9;// Use CTRL + Space for content assist.&#xA;&#x9;in event myEvent" name="d">
     <regions xmi:id="_TzijKzglEeykxvg1BffPgg" name="main region">
       <vertices xsi:type="sgraph:Entry" xmi:id="_TzijLDglEeykxvg1BffPgg">
-        <outgoingTransitions xmi:id="_TzijLTglEeykxvg1BffPgg" target="_TzjKMDglEeykxvg1BffPgg"/>
+        <outgoingTransitions xmi:id="_TzijLTglEeykxvg1BffPgg" target="1"/>
       </vertices>
-      <vertices xsi:type="sgraph:State" xmi:id="_TzjKMDglEeykxvg1BffPgg" name="StateA" incomingTransitions="_TzijLTglEeykxvg1BffPgg">
-        <outgoingTransitions xmi:id="_TzjKMzglEeykxvg1BffPgg" specification="myEvent" target="_TzjKOjglEeykxvg1BffPgg"/>
+      <vertices xsi:type="sgraph:State" xmi:id="1" name="StateA" incomingTransitions="_TzijLTglEeykxvg1BffPgg">
+        <outgoingTransitions xmi:id="3" specification="myEvent" target="2"/>
       </vertices>
-      <vertices xsi:type="sgraph:State" xmi:id="_TzjKOjglEeykxvg1BffPgg" name="StateB" incomingTransitions="_TzjKMzglEeykxvg1BffPgg"/>
+      <vertices xsi:type="sgraph:State" xmi:id="2" name="StateB" incomingTransitions="3"/>
     </regions>
   </sgraph:Statechart>
   <notation:Diagram xmi:id="_TzjxSDglEeykxvg1BffPgg" type="org.yakindu.sct.ui.editor.editor.StatechartDiagramEditor" element="_Tzh8EDglEeykxvg1BffPgg" measurementUnit="Pixel">
@@ -31,7 +31,7 @@
           <styles xsi:type="notation:NamedStyle" xmi:id="_TzjxVjglEeykxvg1BffPgg" name="allowColors"/>
           <layoutConstraint xsi:type="notation:Bounds" xmi:id="_TzjxVzglEeykxvg1BffPgg" x="49" y="22" width="15" height="15"/>
         </children>
-        <children xmi:id="_TzjxWDglEeykxvg1BffPgg" type="State" element="_TzjKMDglEeykxvg1BffPgg">
+        <children xmi:id="_TzjxWDglEeykxvg1BffPgg" type="State" element="1">
           <children xsi:type="notation:DecorationNode" xmi:id="_TzjxWTglEeykxvg1BffPgg" type="StateName">
             <styles xsi:type="notation:ShapeStyle" xmi:id="_TzjxWjglEeykxvg1BffPgg"/>
             <layoutConstraint xsi:type="notation:Location" xmi:id="_TzjxWzglEeykxvg1BffPgg"/>
@@ -47,7 +47,7 @@
           <styles xsi:type="notation:BooleanValueStyle" xmi:id="_TzjxYjglEeykxvg1BffPgg" name="isHorizontal" booleanValue="true"/>
           <layoutConstraint xsi:type="notation:Bounds" xmi:id="_TzjxYzglEeykxvg1BffPgg" x="40" y="80"/>
         </children>
-        <children xmi:id="_TzjxZDglEeykxvg1BffPgg" type="State" element="_TzjKOjglEeykxvg1BffPgg">
+        <children xmi:id="_TzjxZDglEeykxvg1BffPgg" type="State" element="2">
           <children xsi:type="notation:DecorationNode" xmi:id="_TzjxZTglEeykxvg1BffPgg" type="StateName">
             <styles xsi:type="notation:ShapeStyle" xmi:id="_TzjxZjglEeykxvg1BffPgg"/>
             <layoutConstraint xsi:type="notation:Location" xmi:id="_TzjxZzglEeykxvg1BffPgg"/>
@@ -89,7 +89,7 @@
       <styles xsi:type="notation:FontStyle" xmi:id="_TzjxgTglEeykxvg1BffPgg" fontName="Verdana"/>
       <bendpoints xsi:type="notation:RelativeBendpoints" xmi:id="_TzjxgjglEeykxvg1BffPgg" points="[3, 6, -10, -71]$[3, 51, -10, -26]"/>
     </edges>
-    <edges xmi:id="_TzjxgzglEeykxvg1BffPgg" type="Transition" element="_TzjKMzglEeykxvg1BffPgg" source="_TzjxWDglEeykxvg1BffPgg" target="_TzjxZDglEeykxvg1BffPgg">
+    <edges xmi:id="_TzjxgzglEeykxvg1BffPgg" type="Transition" element="3" source="_TzjxWDglEeykxvg1BffPgg" target="_TzjxZDglEeykxvg1BffPgg">
       <children xsi:type="notation:DecorationNode" xmi:id="_TzjxhDglEeykxvg1BffPgg" type="TransitionExpression">
         <styles xsi:type="notation:ShapeStyle" xmi:id="_TzjxhTglEeykxvg1BffPgg"/>
         <layoutConstraint xsi:type="notation:Location" xmi:id="_TzjxhjglEeykxvg1BffPgg" y="10"/>
