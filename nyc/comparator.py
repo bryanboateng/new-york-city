@@ -50,8 +50,10 @@ class Comparator:
         self.mapping_to_matches_cache = {}
 
     def compare(self) -> ComparisonResult:
-        max_degree1 = max((len(transitions) for state_pair, transitions in self.grouped_edges1.items()))
-        max_degree2 = max((len(transitions) for state_pair, transitions in self.grouped_edges2.items()))
+        max_degree1 = 0 if self.grouped_edges1 == {} else \
+            max((len(transitions) for state_pair, transitions in self.grouped_edges1.items()))
+        max_degree2 = 0 if self.grouped_edges2 == {} else \
+            max((len(transitions) for state_pair, transitions in self.grouped_edges2.items()))
         is_greedy = max(len(self.states1), len(self.states2), max_degree1, max_degree2) > 10
         if is_greedy:
             best_mapping, score = self.get_best_mapping_greedy()
