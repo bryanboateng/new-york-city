@@ -41,8 +41,10 @@ class Comparator:
         self.graph2 = create_comparison_graph(statechart2)
         self.states1 = get_states(self.graph1)
         self.states2 = get_states(self.graph2)
-        self.grouped_edges1 = group_edges(self.graph1, get_edges(self.graph1))
-        self.grouped_edges2 = group_edges(self.graph2, get_edges(self.graph2))
+        self.edges1 = get_edges(self.graph1)
+        self.edges2 = get_edges(self.graph2)
+        self.grouped_edges1 = group_edges(self.graph1, self.edges1)
+        self.grouped_edges2 = group_edges(self.graph2, self.edges2)
         self.labeled_nodes1 = get_labeled_nodes(self.graph1)
         self.labeled_nodes2 = get_labeled_nodes(self.graph2)
         self.mapping_to_matches_cache = {}
@@ -170,19 +172,17 @@ class Comparator:
         return 2 * len(matches)
 
     def look_ahead(self, mapping_element: Tuple[Any, Any]):
-        edges1 = get_edges(self.graph1)
-        edges2 = get_edges(self.graph2)
         outgoing_labeled_transitions1 = \
-            get_labeled_edges(self.graph1, edges1, self.labeled_nodes1, mapping_element[0], True)
+            get_labeled_edges(self.graph1, self.edges1, self.labeled_nodes1, mapping_element[0], True)
         outgoing_labeled_transitions2 = \
-            get_labeled_edges(self.graph2, edges2, self.labeled_nodes2, mapping_element[1], True)
+            get_labeled_edges(self.graph2, self.edges2, self.labeled_nodes2, mapping_element[1], True)
         a = get_potential_new_labeled_nodes(outgoing_labeled_transitions1, outgoing_labeled_transitions2)
         b = get_potential_new_labeled_nodes(outgoing_labeled_transitions2, outgoing_labeled_transitions1)
 
         incoming_labeled_transitions1 = \
-            get_labeled_edges(self.graph1, edges1, self.labeled_nodes1, mapping_element[0], False)
+            get_labeled_edges(self.graph1, self.edges1, self.labeled_nodes1, mapping_element[0], False)
         incoming_labeled_transitions2 = \
-            get_labeled_edges(self.graph2, edges2, self.labeled_nodes2, mapping_element[1], False)
+            get_labeled_edges(self.graph2, self.edges2, self.labeled_nodes2, mapping_element[1], False)
         c = get_potential_new_labeled_nodes(incoming_labeled_transitions1, incoming_labeled_transitions2)
         d = get_potential_new_labeled_nodes(incoming_labeled_transitions2, incoming_labeled_transitions1)
 
