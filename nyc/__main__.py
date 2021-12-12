@@ -10,6 +10,7 @@ from colorama import Fore, init
 from tabulate import tabulate
 from tqdm import tqdm
 from tqdm.contrib.concurrent import process_map
+from yak_parser import Statechart
 from yak_parser.StatechartParser import StatechartParser
 
 from nyc import preprocessor
@@ -96,6 +97,8 @@ class Main:
             Main.load_comparison_result(arguments.result_file)
         path1, path2, comparison_result_ = comparison_result[arguments.id - 1]
         print((Fore.GREEN + f'#{arguments.id}'))
+        print(f'Statechart 1: {os.path.basename(path1)}')
+        print(f'Statechart 2: {os.path.basename(path2)}')
         print(f'Average similarity: {"{:.2%}".format(comparison_result_.similarity)}')
         print(f'Maximum similarity: {"{:.2%}".format(comparison_result_.max_similarity)}')
         print()
@@ -104,9 +107,60 @@ class Main:
         Main.print_preprocessing_results(path1, unprocessed_statechart_and_preprocessing_result_pairs[path1])
         Main.print_preprocessing_results(path2, unprocessed_statechart_and_preprocessing_result_pairs[path2])
 
+        statechart1: Statechart = unprocessed_statechart_and_preprocessing_result_pairs[path1][0]
+        statechart2: Statechart = unprocessed_statechart_and_preprocessing_result_pairs[path2][0]
         print(('\033[1m' + 'Matches:'))
         for (id1, id2), labels in comparison_result_.diff.matches.items():
-            print(f'{id1} - {id2}: {labels}')
+            if labels == {'hierarchy'}:
+                named_edge1 = \
+                    f'{statechart1.get_name(id1[:len(id1) // 2])} -> {statechart1.get_name(id1[len(id1) // 2:])}'
+                named_edge2 = \
+                    f'{statechart2.get_name(id2[:len(id2) // 2])} -> {statechart2.get_name(id2[len(id2) // 2:])}'
+                print(f'{named_edge1} = {named_edge2}: {labels}')
+            elif Main.is_transition(labels):
+                transitions1 = [y for x in statechart1.transitions.values() for y in x if y.transition_id == id1][0]
+                named_transitions1 = \
+                    f'{statechart1.get_name(transitions1.source_id)} -> {statechart1.get_name(transitions1.source_id)}'
+                transitions2 = [y for x in statechart2.transitions.values() for y in x if y.transition_id == id2][0]
+                named_transitions2 = \
+                    f'{statechart2.get_name(transitions2.source_id)} -> {statechart2.get_name(transitions2.source_id)}'
+                print(f'{named_transitions1} = {named_transitions2}: {labels}')
+            else:
+                print(f'{statechart1.get_name(id1)} = {statechart2.get_name(id2)}: {labels}')
+
+        print(('\033[1m' + 'Deletions:'))
+        Main.method_name(comparison_result_.diff.deletions.items(), statechart1)
+
+        print(('\033[1m' + 'Additions:'))
+        Main.method_name(comparison_result_.diff.additions.items(), statechart2)
+
+    @staticmethod
+    def method_name(something, statechart):
+        for id_, labels in something:
+            if labels == {'hierarchy'}:
+                named_edge = \
+                    f'{statechart.get_name(id_[:len(id_) // 2])} -> {statechart.get_name(id_[len(id_) // 2:])}'
+                print(f'{named_edge}: {labels}')
+            elif Main.is_transition(labels):
+                transitions = [y for x in statechart.transitions.values() for y in x if y.transition_id == id_][0]
+                named_transitions = \
+                    f'{statechart.get_name(transitions.source_id)} -> {statechart.get_name(transitions.source_id)}'
+                print(f'{named_transitions}: {labels}')
+            else:
+                print(f'{statechart.get_name(id_)}: {labels}')
+
+    @staticmethod
+    def is_transition(labels):
+        if 'transition' in labels:
+            return True
+        elif any(x.startswith('trigger_') for x in labels):
+            return True
+        elif any(x.startswith('guard_') for x in labels):
+            return True
+        elif any(x.startswith('effect_') for x in labels):
+            return True
+        else:
+            return False
 
     @staticmethod
     def load_statecharts(directory):
@@ -146,21 +200,21 @@ class Main:
         if len(unreachable_states) + len(removed_nesting_states) + len(removed_duplicate_transitions) != 0:
             print('\033[3m' + f'{os.path.basename(path)}:')
 
-            statechart = unprocessed_statechart_and_processing_result[0]
+            statechart: Statechart = unprocessed_statechart_and_processing_result[0]
             if len(unreachable_states) != 0:
                 print('Removed unreachable states')
-                print([statechart.get_state_name(state) for state in unreachable_states])
+                print([statechart.get_name(state) for state in unreachable_states])
 
             if len(removed_nesting_states) != 0:
                 print('Removed unnecessary nesting states')
-                print([statechart.get_state_name(state) for state in removed_nesting_states])
+                print([statechart.get_name(state) for state in removed_nesting_states])
 
             if len(removed_duplicate_transitions) != 0:
                 print('Removed unnecessary nesting states')
                 for transition in removed_duplicate_transitions:
                     print(
-                        f'{transition.transition_id}: {statechart.get_state_name(transition.source_id)} -> '
-                        f'{statechart.get_state_name(transition.target_id)} : {transition.specification}'
+                        f'{transition.transition_id}: {statechart.get_name(transition.source_id)} -> '
+                        f'{statechart.get_name(transition.target_id)} : {transition.specification}'
                     )
 
             print()
