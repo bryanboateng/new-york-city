@@ -4,7 +4,9 @@ import itertools
 import os
 import pickle
 import sys
+from collections import defaultdict
 from multiprocessing import cpu_count
+from typing import Set, Tuple, List, Any, Dict
 
 from colorama import Fore, init
 from tabulate import tabulate
@@ -110,23 +112,26 @@ class Main:
         statechart1: Statechart = unprocessed_statechart_and_preprocessing_result_pairs[path1][0]
         statechart2: Statechart = unprocessed_statechart_and_preprocessing_result_pairs[path2][0]
         print(('\033[1m' + 'Matches:'))
-        for (id1, id2), labels in comparison_result_.diff.matches.items():
-            if labels == {'hierarchy'}:
-                named_edge1 = \
-                    f'{statechart1.get_name(id1[:len(id1) // 2])} -> {statechart1.get_name(id1[len(id1) // 2:])}'
-                named_edge2 = \
-                    f'{statechart2.get_name(id2[:len(id2) // 2])} -> {statechart2.get_name(id2[len(id2) // 2:])}'
-                print(f'{named_edge1} = {named_edge2}: {labels}')
-            elif Main.is_transition(labels):
-                transitions1 = [y for x in statechart1.transitions.values() for y in x if y.transition_id == id1][0]
-                named_transitions1 = \
-                    f'{statechart1.get_name(transitions1.source_id)} -> {statechart1.get_name(transitions1.source_id)}'
-                transitions2 = [y for x in statechart2.transitions.values() for y in x if y.transition_id == id2][0]
-                named_transitions2 = \
-                    f'{statechart2.get_name(transitions2.source_id)} -> {statechart2.get_name(transitions2.source_id)}'
-                print(f'{named_transitions1} = {named_transitions2}: {labels}')
-            else:
-                print(f'{statechart1.get_name(id1)} = {statechart2.get_name(id2)}: {labels}')
+        grouped_matches = Main.group(comparison_result_.diff.matches.items())
+        print('\033[3m' + 'States')
+        for (id1, id2), labels in grouped_matches['state']:
+            print(f'{statechart1.get_name(id1)} = {statechart2.get_name(id2)}: {labels}')
+        print('\033[3m' + 'Transitions')
+        for (id1, id2), labels in grouped_matches['transition']:
+            transitions1 = [y for x in statechart1.transitions.values() for y in x if y.transition_id == id1][0]
+            named_transitions1 = \
+                f'{statechart1.get_name(transitions1.source_id)} -> {statechart1.get_name(transitions1.source_id)}'
+            transitions2 = [y for x in statechart2.transitions.values() for y in x if y.transition_id == id2][0]
+            named_transitions2 = \
+                f'{statechart2.get_name(transitions2.source_id)} -> {statechart2.get_name(transitions2.source_id)}'
+            print(f'{named_transitions1} = {named_transitions2}: {labels}')
+        print('\033[3m' + 'Hierarchy')
+        for (id1, id2), labels in grouped_matches['hierarchy']:
+            named_edge1 = \
+                f'{statechart1.get_name(id1[:len(id1) // 2])} -> {statechart1.get_name(id1[len(id1) // 2:])}'
+            named_edge2 = \
+                f'{statechart2.get_name(id2[:len(id2) // 2])} -> {statechart2.get_name(id2[len(id2) // 2:])}'
+            print(f'{named_edge1} = {named_edge2}: {labels}')
 
         print(('\033[1m' + 'Deletions:'))
         Main.method_name(comparison_result_.diff.deletions.items(), statechart1)
@@ -135,19 +140,38 @@ class Main:
         Main.method_name(comparison_result_.diff.additions.items(), statechart2)
 
     @staticmethod
+    def group(matches: List[Tuple[Any, Set[str]]]) -> Dict[str, List[Tuple[Any, Set[str]]]]:
+        dictionary = defaultdict(list)
+        for x, labels in matches:
+            dictionary[Main.get_match_type(labels)].append((x, labels))
+        return dictionary
+
+    @staticmethod
+    def get_match_type(labels):
+        if labels == {'hierarchy'}:
+            return 'hierarchy'
+        elif Main.is_transition(labels):
+            return 'transition'
+        else:
+            return 'state'
+
+    @staticmethod
     def method_name(something, statechart):
-        for id_, labels in something:
-            if labels == {'hierarchy'}:
-                named_edge = \
-                    f'{statechart.get_name(id_[:len(id_) // 2])} -> {statechart.get_name(id_[len(id_) // 2:])}'
-                print(f'{named_edge}: {labels}')
-            elif Main.is_transition(labels):
-                transitions = [y for x in statechart.transitions.values() for y in x if y.transition_id == id_][0]
-                named_transitions = \
-                    f'{statechart.get_name(transitions.source_id)} -> {statechart.get_name(transitions.target_id)}'
-                print(f'{named_transitions}: {labels}')
-            else:
-                print(f'{statechart.get_name(id_)}: {labels}')
+        grouped_something = Main.group(something)
+        print('\033[3m' + 'States')
+        for id_, labels in grouped_something['state']:
+            print(f'{statechart.get_name(id_)}: {labels}')
+        print('\033[3m' + 'Transitions')
+        for id_, labels in grouped_something['transition']:
+            transitions = [y for x in statechart.transitions.values() for y in x if y.transition_id == id_][0]
+            named_transitions = \
+                f'{statechart.get_name(transitions.source_id)} -> {statechart.get_name(transitions.target_id)}'
+            print(f'{named_transitions}: {labels}')
+        print('\033[3m' + 'Hierarchy')
+        for id_, labels in grouped_something['hierarchy']:
+            named_edge = \
+                f'{statechart.get_name(id_[:len(id_) // 2])} -> {statechart.get_name(id_[len(id_) // 2:])}'
+            print(f'{named_edge}: {labels}')
 
     @staticmethod
     def is_transition(labels):
