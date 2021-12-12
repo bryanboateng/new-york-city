@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: E402
 
 import unittest
-from nyc.comparator import get_statechart_mappings, create_comparison_graph
+from nyc.comparator import Comparator
 from yak_parser.StatechartParser import StatechartParser
 
 
@@ -16,15 +16,13 @@ class TestGetStatechartMappings(unittest.TestCase):
         statechart2 = StatechartParser().parse(
             path='testdata/test_comparison/test_get_statechart_mappings/test_get_statechart_mappings12.ysc'
         )
-        graph1 = create_comparison_graph(statechart1)
-        graph2 = create_comparison_graph(statechart2)
 
         expected = [
             {'A': '1', 'B': '2', 'q': 'x', 'r': 'y'},
             {'A': '1', 'B': '2', 'r': 'x', 'q': 'y'},
             {'B': '1', 'A': '2'}
         ]
-        self.assertCountEqual(expected, get_statechart_mappings(graph1, graph2))
+        self.assertCountEqual(expected, Comparator(statechart1, statechart2).get_statechart_mappings())
 
     def test2(self):
         statechart1 = StatechartParser().parse(
@@ -33,8 +31,6 @@ class TestGetStatechartMappings(unittest.TestCase):
         statechart2 = StatechartParser().parse(
             path='testdata/test_comparison/test_get_statechart_mappings/test_get_statechart_mappings22.ysc'
         )
-        graph1 = create_comparison_graph(statechart1)
-        graph2 = create_comparison_graph(statechart2)
 
         expected = [
             {'D': 'A', 'E': 'B', 'F': 'C', '5': '1', '6': '2', '7': '3', '8': '4'},
@@ -50,7 +46,7 @@ class TestGetStatechartMappings(unittest.TestCase):
             {'F': 'A', 'E': 'B', 'D': 'C'}
         ]
 
-        self.assertCountEqual(expected, get_statechart_mappings(graph1, graph2))
+        self.assertCountEqual(expected, Comparator(statechart1, statechart2).get_statechart_mappings())
 
     def test3(self):
         statechart1 = StatechartParser().parse(
@@ -59,8 +55,6 @@ class TestGetStatechartMappings(unittest.TestCase):
         statechart2 = StatechartParser().parse(
             path='testdata/test_comparison/test_get_statechart_mappings/test_get_statechart_mappings32.ysc'
         )
-        graph1 = create_comparison_graph(statechart1)
-        graph2 = create_comparison_graph(statechart2)
 
         expected = [
             {'A': 'D', 'B': 'E', '1': '4'},
@@ -71,7 +65,7 @@ class TestGetStatechartMappings(unittest.TestCase):
             {'C': 'D', 'B': 'E'}
         ]
 
-        self.assertCountEqual(expected, get_statechart_mappings(graph1, graph2))
+        self.assertCountEqual(expected, Comparator(statechart1, statechart2).get_statechart_mappings())
 
 
 if __name__ == '__main__':

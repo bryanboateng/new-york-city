@@ -39,16 +39,22 @@ class Comparator:
         self.statechart2 = statechart2
         self.graph1 = create_comparison_graph(statechart1)
         self.graph2 = create_comparison_graph(statechart2)
+        self.states1 = get_states(self.graph1)
+        self.states2 = get_states(self.graph2)
+        self.grouped_edges1 = group_edges(self.graph1, get_edges(self.graph1))
+        self.grouped_edges2 = group_edges(self.graph2, get_edges(self.graph2))
         self.labeled_nodes1 = get_labeled_nodes(self.graph1)
         self.labeled_nodes2 = get_labeled_nodes(self.graph2)
         self.mapping_to_matches_cache = {}
 
     def compare(self) -> ComparisonResult:
-        is_greedy = min(self.graph1.number_of_nodes(), self.graph2.number_of_nodes()) > 10
+        max_degree1 = max((len(transitions) for state_pair, transitions in self.grouped_edges1.items()))
+        max_degree2 = max((len(transitions) for state_pair, transitions in self.grouped_edges2.items()))
+        is_greedy = max(len(self.states1), len(self.states2), max_degree1, max_degree2) > 10
         if is_greedy:
             best_mapping, score = self.get_best_mapping_greedy()
         else:
-            mappings = get_statechart_mappings(self.graph1, self.graph2)
+            mappings = self.get_statechart_mappings()
             best_mappings, score = maxima(mappings, key=lambda mapping: len(self.get_matches(mapping)))
 
             if len(best_mappings) > 1:
@@ -78,11 +84,9 @@ class Comparator:
 
     def get_best_mapping_greedy(self):
         mapping = {}
-        graph1_states = get_states(self.graph1)
-        graph2_states = get_states(self.graph2)
         while True:
-            unmapped_graph1_states = [state for state in graph1_states if state not in mapping.keys()]
-            unmapped_graph2_states = [state for state in graph2_states if state not in mapping.values()]
+            unmapped_graph1_states = [state for state in self.states1 if state not in mapping.keys()]
+            unmapped_graph2_states = [state for state in self.states2 if state not in mapping.values()]
             if min(len(unmapped_graph1_states), len(unmapped_graph2_states)) == 0:
                 break
             candidates = maxima(
@@ -199,6 +203,24 @@ class Comparator:
             self.mapping_to_matches_cache[mapping_str] = matches
             return matches
 
+    def get_statechart_mappings(self) -> List[Dict[Any, Any]]:
+        state_mappings = get_mappings(self.states1, self.states2)
+        mappings = []
+        for state_mapping in state_mappings:
+            grouped_transition_mapping_groups = []
+            for (source, target), transitions1 in self.grouped_edges1.items():
+                if state_mapping.get(source) and state_mapping.get(target):
+                    transitions2 = self.grouped_edges2[state_mapping[source], state_mapping[target]]
+                    transition_mappings = get_mappings(transitions1, transitions2)
+                    if transition_mappings != [{}]:
+                        grouped_transition_mapping_groups.append(transition_mappings)
+            for transition_mapping_groups in list(itertools.product(*grouped_transition_mapping_groups)):
+                mapping = state_mapping.copy()
+                for transition_mapping_group in transition_mapping_groups:
+                    mapping.update(transition_mapping_group)
+                mappings.append(mapping)
+        return mappings
+
 
 def get_grouped_mapable_adjacent_edges(best_mapping_element, graph, mapping):
     predecessors = {x for x in graph.predecessors(best_mapping_element) if graph.nodes[x]['source_id'] in mapping}
@@ -291,28 +313,6 @@ def create_tie_break_comparison_graph(statechart: Statechart) -> networkx.DiGrap
     ]:
         graph.add_node(node, labels={'state', 'name_' + statechart.hierarchy.nodes[node]['obj'].name})
     return graph
-
-
-def get_statechart_mappings(graph1: networkx.DiGraph, graph2: networkx.DiGraph) -> List[Dict[Any, Any]]:
-    state_mappings = get_mappings(get_states(graph1), get_states(graph2))
-    mappings = []
-    for state_mapping in state_mappings:
-        grouped_edges1 = group_edges(graph1, get_edges(graph1))
-        grouped_edges2 = group_edges(graph2, get_edges(graph2))
-
-        grouped_transition_mapping_groups = []
-        for (source, target), transitions1 in grouped_edges1.items():
-            if state_mapping.get(source) and state_mapping.get(target):
-                transitions2 = grouped_edges2[state_mapping[source], state_mapping[target]]
-                transition_mappings = get_mappings(transitions1, transitions2)
-                if transition_mappings != [{}]:
-                    grouped_transition_mapping_groups.append(transition_mappings)
-        for transition_mapping_groups in list(itertools.product(*grouped_transition_mapping_groups)):
-            mapping = state_mapping.copy()
-            for transition_mapping_group in transition_mapping_groups:
-                mapping.update(transition_mapping_group)
-            mappings.append(mapping)
-    return mappings
 
 
 def get_states(graph: networkx.DiGraph) -> Set[Any]:
