@@ -144,7 +144,7 @@ class Main:
             elif Main.is_transition(labels):
                 transitions = [y for x in statechart.transitions.values() for y in x if y.transition_id == id_][0]
                 named_transitions = \
-                    f'{statechart.get_name(transitions.source_id)} -> {statechart.get_name(transitions.source_id)}'
+                    f'{statechart.get_name(transitions.source_id)} -> {statechart.get_name(transitions.target_id)}'
                 print(f'{named_transitions}: {labels}')
             else:
                 print(f'{statechart.get_name(id_)}: {labels}')
