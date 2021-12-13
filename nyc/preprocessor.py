@@ -19,7 +19,6 @@ def process(statechart: Statechart):
     removed_nesting_states = __remove_unnecessary_nesting(statechart)
     unreachable_states = __remove_unreachable_states(statechart)
     __convert_entry_exit_actions(statechart)
-    __convert_state_actions(statechart)
     removed_duplicate_transitions = __remove_duplicate_transitions(statechart)
     __normalize_time_units(statechart)
     return PreprocessingResult(unreachable_states, removed_nesting_states, removed_duplicate_transitions)
@@ -41,22 +40,6 @@ def __convert_entry_exit_actions(statechart: Statechart):
         statechart.hierarchy.nodes[node]['obj'].specifications = \
             [specification for specification in statechart.hierarchy.nodes[node]['obj'].specifications
              if 'entry' not in specification.triggers and 'exit' not in specification.triggers]
-
-
-def __convert_state_actions(statechart: Statechart):
-    for node in statechart.hierarchy:
-        if statechart.hierarchy.nodes[node]['ntype'] != NodeType.STATE:
-            continue
-        for specification in copy.deepcopy(statechart.hierarchy.nodes[node]['obj'].specifications):
-            if specification.triggers and \
-                    'entry' not in specification.triggers and 'exit' not in specification.triggers:
-                trans_id = statechart.random_node_id()
-                sc_transition = \
-                    ScTransition(transition_id=trans_id, source_id=node, target_id=node, specification=specification)
-                statechart.transitions[node].append(sc_transition)
-                statechart.hierarchy.nodes[node]['obj'].specifications.remove(specification)
-                #statechart.hierarchy.nodes[node]['obj'].specifications = \
-                #    [item for item in statechart.hierarchy.nodes[node]['obj'].specifications if item['name']]
 
 
 def __remove_unreachable_states(statechart: Statechart):

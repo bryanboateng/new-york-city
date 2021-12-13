@@ -117,15 +117,6 @@ class TestPreprocessing(unittest.TestCase):
 
         self.assertStatechartEqual(statechart_expected, statechart)
 
-    def test_convert_state_actions(self):
-        statechart = StatechartParser().parse(path='testdata/test_preprocessing/test_convert_state_actions.ysc')
-        preprocessor.process(statechart)
-        statechart_expected = StatechartParser().parse(
-            path='testdata/test_preprocessing/test_convert_state_actions_expected.ysc'
-        )
-
-        self.assertStatechartEqual(statechart_expected, statechart)
-
     def assertStatechartEqual(self, expected: Statechart, actual: Statechart):
         self.assertEqual(expected.definition.events, actual.definition.events)
         self.assertTrue(networkx.is_isomorphic(expected.hierarchy, actual.hierarchy, node_match=node_match))
