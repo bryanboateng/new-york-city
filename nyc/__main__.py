@@ -56,7 +56,9 @@ class Main:
         pairs = list(itertools.combinations(named_statecharts, 2))
         comparison_result = process_map(compare_pair, pairs, desc='Processing', unit='pairs',
                                         max_workers=cpu_count() - 1)
-        comparison_result.sort(key=lambda result: result[2].similarity * result[2].max_similarity, reverse=True)
+        comparison_result.sort(
+            key=lambda result: result[2].similarity * result[2].max_similarity * result[2].state_similarity,
+            reverse=True)
         Main.save_comparison_result((unprocessed_statechart_and_preprocessing_result_pairs, comparison_result))
 
     @staticmethod
@@ -65,6 +67,7 @@ class Main:
         parser.add_argument('result_file', help='Path of the comparison result file')
         parser.add_argument('-threshold', type=float, default=0.8, help='Threshold for average similarity')
         parser.add_argument('-max-threshold', type=float, default=0.8, help='Threshold for maximum similarity')
+        parser.add_argument('-state-threshold', type=float, default=0.9, help='Threshold for state similarity')
         arguments = parser.parse_args(sys.argv[2:])
         _, comparison_result = Main.load_comparison_result(arguments.result_file)
         table = [
@@ -73,7 +76,8 @@ class Main:
                 os.path.basename(path1),
                 os.path.basename(path2),
                 f'{result.similarity:.2%}{"*" if result.is_greedy else ""}',
-                f'{result.max_similarity:.2%}{"*" if result.is_greedy else ""}'
+                f'{result.max_similarity:.2%}{"*" if result.is_greedy else ""}',
+                f'{result.state_similarity:.2%}{"*" if result.is_greedy else ""}'
             ]
             for i, (path1, path2, result) in enumerate(comparison_result, start=1)
             if result.similarity >= arguments.threshold or result.max_similarity >= arguments.max_threshold
@@ -83,8 +87,9 @@ class Main:
                 'ID',
                 'File 1',
                 'File 2',
-                f'Average similarity (>={"{:.2%}".format(arguments.threshold)})',
-                f'Maximum similarity (>={"{:.2%}".format(arguments.max_threshold)})'
+                f'Similarity (>={"{:.2%}".format(arguments.threshold)})',
+                f'Maximum single similarity (>={"{:.2%}".format(arguments.max_threshold)})',
+                f'State similarity (>={"{:.2%}".format(arguments.state_threshold)})'
             ])
         )
         print('*: Greedy algorithm used')
@@ -116,6 +121,7 @@ class Main:
         print('\033[3m' + 'States')
         for (id1, id2), labels in grouped_matches['state']:
             print(f'{statechart1.get_name(id1)} = {statechart2.get_name(id2)}: {labels}')
+        print()
         print('\033[3m' + 'Transitions')
         for (id1, id2), labels in grouped_matches['transition']:
             transitions1 = [y for x in statechart1.transitions.values() for y in x if y.transition_id == id1][0]
@@ -125,6 +131,7 @@ class Main:
             named_transitions2 = \
                 f'{statechart2.get_name(transitions2.source_id)} -> {statechart2.get_name(transitions2.source_id)}'
             print(f'{named_transitions1} = {named_transitions2}: {labels}')
+        print()
         print('\033[3m' + 'Hierarchy')
         for (id1, id2), labels in grouped_matches['hierarchy']:
             named_edge1 = \
@@ -132,12 +139,15 @@ class Main:
             named_edge2 = \
                 f'{statechart2.get_name(id2[:len(id2) // 2])} -> {statechart2.get_name(id2[len(id2) // 2:])}'
             print(f'{named_edge1} = {named_edge2}: {labels}')
+        print()
 
         print(('\033[1m' + 'Deletions:'))
         Main.method_name(comparison_result_.diff.deletions.items(), statechart1)
+        print()
 
         print(('\033[1m' + 'Additions:'))
         Main.method_name(comparison_result_.diff.additions.items(), statechart2)
+        print()
 
     @staticmethod
     def group(matches: List[Tuple[Any, Set[str]]]) -> Dict[str, List[Tuple[Any, Set[str]]]]:
@@ -161,12 +171,14 @@ class Main:
         print('\033[3m' + 'States')
         for id_, labels in grouped_something['state']:
             print(f'{statechart.get_name(id_)}: {labels}')
+        print()
         print('\033[3m' + 'Transitions')
         for id_, labels in grouped_something['transition']:
             transitions = [y for x in statechart.transitions.values() for y in x if y.transition_id == id_][0]
             named_transitions = \
                 f'{statechart.get_name(transitions.source_id)} -> {statechart.get_name(transitions.target_id)}'
             print(f'{named_transitions}: {labels}')
+        print()
         print('\033[3m' + 'Hierarchy')
         for id_, labels in grouped_something['hierarchy']:
             named_edge = \

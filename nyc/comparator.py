@@ -21,11 +21,12 @@ class Diff:
 
 class ComparisonResult:
     def __init__(self, diff: Diff, similarity_: float, single_similarity0: float, single_similarity1: float,
-                 is_greedy: bool):
+                 state_similarity: float, is_greedy: bool):
         self.diff = diff
         self.similarity = similarity_
         self.single_similarity0 = single_similarity0
         self.single_similarity1 = single_similarity1
+        self.state_similarity = state_similarity
         self.is_greedy = is_greedy
 
     @property
@@ -71,8 +72,9 @@ class Comparator:
                 best_mapping = best_mappings[0]
 
         matches = self.get_matches(best_mapping)
+        grouped_matches = group_labeled_matches(matches)
         diff = Diff(
-            group_labeled_matches(matches),
+            grouped_matches,
             additions=group_labeled_elements({labeled_node for labeled_node in self.labeled_nodes2
                                               if labeled_node not in [match[1] for match in matches]}),
             deletions=group_labeled_elements({labeled_node for labeled_node in self.labeled_nodes1
@@ -81,10 +83,40 @@ class Comparator:
         return ComparisonResult(
             diff=diff,
             similarity_=2 * score / (len(self.labeled_nodes1) + len(self.labeled_nodes2)),
+            state_similarity=
+            2 * len([j for i in [x[1] for x in self.group(grouped_matches.items())['state']] for j in i]) /
+            (len([x for x in self.labeled_nodes1 if x[0] in self.states1]) +
+             len([x for x in self.labeled_nodes2 if x[0] in self.states2])),
             single_similarity0=score / len(self.labeled_nodes1),
             single_similarity1=score / len(self.labeled_nodes2),
             is_greedy=is_greedy
         )
+
+    def get_match_type(self, labels):
+        if labels == {'hierarchy'}:
+            return 'hierarchy'
+        elif self.is_transition(labels):
+            return 'transition'
+        else:
+            return 'state'
+
+    def is_transition(self, labels):
+        if 'transition' in labels:
+            return True
+        elif any(x.startswith('trigger_') for x in labels):
+            return True
+        elif any(x.startswith('guard_') for x in labels):
+            return True
+        elif any(x.startswith('effect_') for x in labels):
+            return True
+        else:
+            return False
+
+    def group(self, matches: List[Tuple[Any, Set[str]]]) -> Dict[str, List[Tuple[Any, Set[str]]]]:
+        dictionary = defaultdict(list)
+        for x, labels in matches:
+            dictionary[self.get_match_type(labels)].append((x, labels))
+        return dictionary
 
     def get_best_mapping_greedy(self):
         mapping = {}
