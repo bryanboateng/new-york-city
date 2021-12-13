@@ -80,7 +80,7 @@ class Main:
                 f'{result.state_similarity:.2%}{"*" if result.is_greedy else ""}'
             ]
             for i, (path1, path2, result) in enumerate(comparison_result, start=1)
-            if result.similarity >= arguments.threshold or result.max_similarity >= arguments.max_threshold
+            if result.similarity >= arguments.threshold or result.max_similarity >= arguments.max_threshold or result.state_similarity >= arguments.state_threshold
         ]
         print(
             tabulate(table, headers=[
