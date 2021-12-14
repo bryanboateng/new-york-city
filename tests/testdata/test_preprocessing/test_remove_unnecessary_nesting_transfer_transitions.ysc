@@ -5,10 +5,10 @@
       <vertices xsi:type="sgraph:Entry" xmi:id="_3ASJk5OAEeWuO-fDDpYHyA" name="">
         <outgoingTransitions xmi:id="_iBj2AC_rEeysI_DwLP0v-A" specification="" target="_grs2UC_rEeysI_DwLP0v-A"/>
       </vertices>
-      <vertices xsi:type="sgraph:State" xmi:id="_Muq1cJQtEeWuO-fDDpYHyA" specification="" name="C" incomingTransitions="_pbZKUC_rEeysI_DwLP0v-A">
+      <vertices xsi:type="sgraph:State" xmi:id="_Muq1cJQtEeWuO-fDDpYHyA" specification="entry / raise hello" name="C" incomingTransitions="_pbZKUC_rEeysI_DwLP0v-A">
         <outgoingTransitions xmi:id="_mZCzoC_rEeysI_DwLP0v-A" specification="operate" target="_grs2UC_rEeysI_DwLP0v-A"/>
         <regions xmi:id="_nDL4cDI-EeyNipvP41_Prg" name="D">
-          <vertices xsi:type="sgraph:State" xmi:id="_oRHrMDI-EeyNipvP41_Prg" name="B" incomingTransitions="_u5jXwDI-EeyNipvP41_Prg _9MQxQDNjEeyZza-XwvCVzQ">
+          <vertices xsi:type="sgraph:State" xmi:id="_oRHrMDI-EeyNipvP41_Prg" specification="exit / raise operate" name="B" incomingTransitions="_u5jXwDI-EeyNipvP41_Prg _9MQxQDNjEeyZza-XwvCVzQ">
             <outgoingTransitions xmi:id="_zzoFEDI-EeyNipvP41_Prg" specification="hello" target="_grs2UC_rEeysI_DwLP0v-A"/>
           </vertices>
           <vertices xsi:type="sgraph:Entry" xmi:id="_uFZ-ADI-EeyNipvP41_Prg">

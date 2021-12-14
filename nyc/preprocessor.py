@@ -130,6 +130,7 @@ def __remove_unnecessary_nesting(statechart: Statechart):
 
         __transfer_transitions(statechart, grandparent, node)
         __transfer_initial_status(statechart, grandparent, node)
+        __transfer_state_actions(statechart, grandparent, node)
         statechart.hierarchy.add_edge(great_grandparent, node)
         statechart.hierarchy.remove_nodes_from([parent, grandparent])
         removed_nesting_states.append(grandparent)
@@ -150,6 +151,12 @@ def __state_is_orthogonal(statechart: Statechart, state):
 
 def __transfer_initial_status(statechart: Statechart, origin, destination):
     statechart.hierarchy.nodes[destination]['obj'].initial = statechart.hierarchy.nodes[origin]['obj'].initial
+
+
+def __transfer_state_actions(statechart: Statechart, origin, destination):
+    origin_specifications = statechart.hierarchy.nodes[origin]['obj'].specifications
+    destination_specifications = statechart.hierarchy.nodes[destination]['obj'].specifications
+    destination_specifications.extend(origin_specifications)
 
 
 def __transfer_transitions(statechart: Statechart, origin, destination):

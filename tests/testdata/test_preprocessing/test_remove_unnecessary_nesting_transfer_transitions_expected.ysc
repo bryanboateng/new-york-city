@@ -6,12 +6,12 @@
         <outgoingTransitions xmi:id="_iBj2AC_rEeysI_DwLP0v-A" specification="" target="_grs2UC_rEeysI_DwLP0v-A"/>
       </vertices>
       <vertices xsi:type="sgraph:State" xmi:id="_grs2UC_rEeysI_DwLP0v-A" name="A" incomingTransitions="_iBj2AC_rEeysI_DwLP0v-A _gCgXYDNkEeyZza-XwvCVzQ _hEtbQDNkEeyZza-XwvCVzQ">
-        <outgoingTransitions xmi:id="_k0SrYDNkEeyZza-XwvCVzQ" specification="operate" target="_eXBF8DNkEeyZza-XwvCVzQ"/>
-        <outgoingTransitions xmi:id="_lmfkYDNkEeyZza-XwvCVzQ" specification="hello" target="_eXBF8DNkEeyZza-XwvCVzQ"/>
+        <outgoingTransitions xmi:id="_k0SrYDNkEeyZza-XwvCVzQ" specification="operate / raise hello" target="_eXBF8DNkEeyZza-XwvCVzQ"/>
+        <outgoingTransitions xmi:id="_lmfkYDNkEeyZza-XwvCVzQ" specification="hello / raise hello" target="_eXBF8DNkEeyZza-XwvCVzQ"/>
       </vertices>
       <vertices xsi:type="sgraph:State" xmi:id="_eXBF8DNkEeyZza-XwvCVzQ" name="B" incomingTransitions="_k0SrYDNkEeyZza-XwvCVzQ _lmfkYDNkEeyZza-XwvCVzQ">
-        <outgoingTransitions xmi:id="_gCgXYDNkEeyZza-XwvCVzQ" specification="operate" target="_grs2UC_rEeysI_DwLP0v-A"/>
-        <outgoingTransitions xmi:id="_hEtbQDNkEeyZza-XwvCVzQ" specification="hello" target="_grs2UC_rEeysI_DwLP0v-A"/>
+        <outgoingTransitions xmi:id="_gCgXYDNkEeyZza-XwvCVzQ" specification="operate / raise operate" target="_grs2UC_rEeysI_DwLP0v-A"/>
+        <outgoingTransitions xmi:id="_hEtbQDNkEeyZza-XwvCVzQ" specification="hello / raise operate" target="_grs2UC_rEeysI_DwLP0v-A"/>
       </vertices>
     </regions>
   </sgraph:Statechart>
@@ -117,7 +117,7 @@
     <edges xmi:id="_k0UgkDNkEeyZza-XwvCVzQ" type="Transition" element="_k0SrYDNkEeyZza-XwvCVzQ" source="_grwgsC_rEeysI_DwLP0v-A" target="_eXF-cDNkEeyZza-XwvCVzQ">
       <children xsi:type="notation:DecorationNode" xmi:id="_k0UglDNkEeyZza-XwvCVzQ" type="TransitionExpression">
         <styles xsi:type="notation:ShapeStyle" xmi:id="_k0UglTNkEeyZza-XwvCVzQ"/>
-        <layoutConstraint xsi:type="notation:Location" xmi:id="_k0VHoDNkEeyZza-XwvCVzQ" x="1" y="10"/>
+        <layoutConstraint xsi:type="notation:Location" xmi:id="_k0VHoDNkEeyZza-XwvCVzQ" x="-22" y="-11"/>
       </children>
       <styles xsi:type="notation:ConnectorStyle" xmi:id="_k0UgkTNkEeyZza-XwvCVzQ" routing="Rectilinear" lineColor="4210752"/>
       <styles xsi:type="notation:FontStyle" xmi:id="_k0UgkzNkEeyZza-XwvCVzQ" fontName="Verdana"/>
