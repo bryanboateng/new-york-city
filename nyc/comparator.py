@@ -292,12 +292,16 @@ def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
         for transition in transitions:
             labels = {'transition'}
             for trigger in transition.specification.triggers:
-                labels.add('trigger_' + trigger)
+                trigger_stripped = remove_whitespace(trigger)
+                if trigger_stripped:
+                    labels.add('trigger_' + trigger_stripped)
             for effect in transition.specification.effects:
-                labels.add('effect_' + effect)
+                effect_stripped = remove_whitespace(effect)
+                if effect_stripped:
+                    labels.add('effect_' + effect_stripped)
             guard = transition.specification.guard
             if guard:
-                guard_stripped = "".join(guard.split())
+                guard_stripped = remove_whitespace(guard)
                 if guard_stripped:
                     labels.add('guard_' + guard_stripped)
             graph.add_node(transition.transition_id, labels=labels, source_id=transition.source_id,
@@ -306,6 +310,10 @@ def create_comparison_graph(statechart: Statechart) -> networkx.DiGraph:
             graph.add_edge(transition.source_id, transition.transition_id)
             graph.add_edge(transition.transition_id, transition.target_id)
     return graph
+
+
+def remove_whitespace(guard):
+    return "".join(guard.split())
 
 
 def build_hierarchy(hierarchy: networkx.DiGraph, state: Any, history_type: ScHistoryType,
