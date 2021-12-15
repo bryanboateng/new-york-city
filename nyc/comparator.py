@@ -120,90 +120,55 @@ class Comparator:
 
     def get_best_mapping_greedy(self):
         mapping = {}
-        while True:
-            unmapped_graph1_states = [state for state in self.states1 if state not in mapping.keys()]
-            unmapped_graph2_states = [state for state in self.states2 if state not in mapping.values()]
-            if min(len(unmapped_graph1_states), len(unmapped_graph2_states)) == 0:
-                break
-            candidates = maxima(
-                itertools.product(unmapped_graph1_states, unmapped_graph2_states),
-                key=lambda mapping_element: self.get_mapping_element_score(mapping_element, mapping)
-            )[0]
-            if len(candidates) > 1:
-                candidates = \
-                    maxima(candidates, key=lambda mapping_element: self.look_ahead(mapping_element))[0]
-            best_mapping_element = candidates[0]
-            mapping[best_mapping_element[0]] = best_mapping_element[1]
+        match_count = 0
+        unmapped_states1 = {state for state in self.states1 if state not in mapping.keys()}
+        unmapped_states2 = {state for state in self.states2 if state not in mapping.values()}
+        while min(len(unmapped_states1), len(unmapped_states2)) > 0:
+            scored_mapping_elements_with_mappings = defaultdict(list)
+            for mapping_element in itertools.product(unmapped_states1, unmapped_states2):
+                match_count_, mapping_ = self.get_mapping_element_score(mapping_element, mapping)
+                scored_mapping_elements_with_mappings[match_count_].append((mapping_element, mapping_))
 
-            grouped_mapable_adjacent_edges1 = \
-                get_grouped_mapable_adjacent_edges(best_mapping_element[0], self.graph1, mapping.keys())
-            grouped_mapable_adjacent_edges2 = \
-                get_grouped_mapable_adjacent_edges(best_mapping_element[1], self.graph2, mapping.values())
+            match_count = max(scored_mapping_elements_with_mappings.keys())
+            mapping_elements_with_mappings = scored_mapping_elements_with_mappings[match_count]
+            if len(mapping_elements_with_mappings) > 1:
+                best_mapping_element, mapping = maxima(
+                    mapping_elements_with_mappings,
+                    key=lambda mapping_element_with_mapping: self.look_ahead(mapping_element_with_mapping[0])
+                )[0][0]
+            else:
+                best_mapping_element, mapping = mapping_elements_with_mappings[0]
+            unmapped_states1.remove(best_mapping_element[0])
+            unmapped_states2.remove(best_mapping_element[1])
 
-            for source, target in grouped_mapable_adjacent_edges1.copy():
-                grouped_mapable_adjacent_edges1[(mapping[source], mapping[target])] = \
-                    grouped_mapable_adjacent_edges1.pop((source, target))
-
-            for group_key in [value for value in grouped_mapable_adjacent_edges1 if
-                              value in grouped_mapable_adjacent_edges2]:
-                unmapped_edges1: Set = grouped_mapable_adjacent_edges1[group_key].copy()
-                unmapped_edges2: Set = grouped_mapable_adjacent_edges2[group_key].copy()
-                while True:
-                    if min(len(unmapped_edges1), len(unmapped_edges2)) == 0:
-                        break
-                    candidate = maxima(
-                        itertools.product(unmapped_edges1, unmapped_edges2),
-                        key=lambda mapping_element: len(self.get_matches(expand_mapping(mapping, mapping_element)))
-                    )[0][0]
-                    mapping[candidate[0]] = candidate[1]
-                    unmapped_edges1.remove(candidate[0])
-                    unmapped_edges2.remove(candidate[1])
-
-        return mapping, len(self.get_matches(mapping))
+        return mapping, match_count
 
     def get_mapping_element_score(self, mapping_element: Tuple[Any, Any], mapping: Dict[Any, Any]):
-        match_count = self.get_match_count(mapping_element)
+        mapping = expand_mapping(mapping, mapping_element)
+        grouped_mapable_adjacent_edges1 = \
+            get_grouped_mapable_adjacent_edges(mapping_element[0], self.graph1, mapping.keys())
+        grouped_mapable_adjacent_edges2 = \
+            get_grouped_mapable_adjacent_edges(mapping_element[1], self.graph2, mapping.values())
 
-        predecessors1 = {x for x in self.graph1.predecessors(mapping_element[0])
-                         if self.graph1.nodes[x]['source_id'] in mapping.keys()}
-        predecessors2 = {x for x in self.graph2.predecessors(mapping_element[1])
-                         if self.graph2.nodes[x]['source_id'] in mapping.values()}
-        predecessors_score = self.get_edges_score(predecessors1, predecessors2)
+        for source, target in grouped_mapable_adjacent_edges1.copy():
+            grouped_mapable_adjacent_edges1[(mapping[source], mapping[target])] = \
+                grouped_mapable_adjacent_edges1.pop((source, target))
 
-        successors1 = {x for x in self.graph1.successors(mapping_element[0]) if
-                       self.graph1.nodes[x]['target_id'] in mapping.keys()}
-        successors2 = {x for x in self.graph2.successors(mapping_element[1]) if
-                       self.graph2.nodes[x]['target_id'] in mapping.values()}
-        successors_score = self.get_edges_score(successors1, successors2)
+        for group_key in [value for value in grouped_mapable_adjacent_edges1 if
+                          value in grouped_mapable_adjacent_edges2]:
+            unmapped_edges1: Set = grouped_mapable_adjacent_edges1[group_key].copy()
+            unmapped_edges2: Set = grouped_mapable_adjacent_edges2[group_key].copy()
+            while min(len(unmapped_edges1), len(unmapped_edges2)) > 0:
+                candidate = maxima(
+                    itertools.product(unmapped_edges1, unmapped_edges2),
+                    key=lambda edge_mapping_element:
+                    len(self.get_matches(expand_mapping(mapping, edge_mapping_element)))
+                )[0][0]
+                mapping[candidate[0]] = candidate[1]
+                unmapped_edges1.remove(candidate[0])
+                unmapped_edges2.remove(candidate[1])
 
-        return match_count + successors_score + predecessors_score
-
-    def get_edges_score(self, edges1, edges2):
-        combinations = list(itertools.product(edges1, edges2))
-        if len(combinations) == 0:
-            return 0
-        else:
-            similarity_values = []
-            total_labels1 = []
-            total_labels2 = []
-            for edge1, edge2 in combinations:
-                edge_labels1 = self.graph1.nodes[edge1]['labels']
-                edge_labels2 = self.graph2.nodes[edge2]['labels']
-                total_labels1.extend(edge_labels1)
-                total_labels2.extend(edge_labels2)
-                matches = edge_labels1 & edge_labels2
-                similarity_values.append(2 * len(matches) / (len(edge_labels1) + len(edge_labels2)))
-            return (sum(similarity_values) / len(combinations)) * (len(total_labels1) + len(total_labels2))
-
-    def get_match_count(self, mapping_element):
-        labeled_nodes1 = {(node, label) for node, label in self.labeled_nodes1 if node == mapping_element[0]}
-        labeled_nodes2 = {(node, label) for node, label in self.labeled_nodes2 if node == mapping_element[1]}
-        matches = set()
-        for labeled_node in labeled_nodes1:
-            match = (mapping_element[1], labeled_node[1])
-            if match in labeled_nodes2:
-                matches.add((labeled_node, match))
-        return 2 * len(matches)
+        return len(self.get_matches(mapping)), mapping
 
     def look_ahead(self, mapping_element: Tuple[Any, Any]):
         outgoing_labeled_transitions1 = \
